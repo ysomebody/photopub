@@ -7,6 +7,7 @@
 
 static CString PhotoTypeMap[]={"1'","1","2'","2"};
 
+
 // CCustomPageDlg dialog
 
 IMPLEMENT_DYNAMIC(CCustomPageDlg, CDialog)
@@ -14,6 +15,9 @@ IMPLEMENT_DYNAMIC(CCustomPageDlg, CDialog)
 CCustomPageDlg::CCustomPageDlg(CWnd* pParent, CString size)
 	: CDialog(CCustomPageDlg::IDD, pParent)
 	, m_PhotoType(0),lastpoint(-1,-1)
+	, m_save(true)
+	, m_bCross(false)
+
 {
 	m_Size=size;
 	double width,height;
@@ -30,6 +34,7 @@ void CCustomPageDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Radio(pDX, IDC_V1, m_PhotoType);
+	DDX_Check(pDX, IDC_CHECK1, m_save);
 }
 
 
@@ -42,6 +47,8 @@ BEGIN_MESSAGE_MAP(CCustomPageDlg, CDialog)
 	ON_BN_CLICKED(IDC_V2, &CCustomPageDlg::OnBnClickedV2)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_RBUTTONDOWN()
+	ON_BN_CLICKED(IDC_TEXT, &CCustomPageDlg::OnBnClickedText)
+	ON_WM_SETCURSOR()
 END_MESSAGE_MAP()
 
 
@@ -59,7 +66,6 @@ BOOL CCustomPageDlg::OnInitDialog()
 	m_ClientRct.bottom=m_ClientRct.top+m_height;
 	m_ClientRct.OffsetRect(wdif/2,hdif/2);
 
-
 	
 	// TODO:  Add extra initialization here
 
@@ -76,13 +82,35 @@ void CCustomPageDlg::OnPaint()
 	dc.Rectangle(&m_ClientRct);
 	size_t size=m_photos.size();
 	for (size_t i=0;i<size;++i) {
-		CPhoto &pht=m_photos[i];
-		int l=(int)(pht.x*FACTOR)+m_ClientRct.left;
-		int t=(int)(pht.y*FACTOR)+m_ClientRct.top;
-		int r=(int)((pht.x+pht.width)*FACTOR)+m_ClientRct.left;
-		int b=(int)((pht.y+pht.height)*FACTOR)+m_ClientRct.top;
+		CElement *pElement=m_photos[i];
+		int l=(int)(pElement->x*FACTOR)+m_ClientRct.left;
+		int t=(int)(pElement->y*FACTOR)+m_ClientRct.top;
+		int r=(int)((pElement->x+pElement->width)*FACTOR)+m_ClientRct.left;
+		int b=(int)((pElement->y+pElement->height)*FACTOR)+m_ClientRct.top;
 		dc.Rectangle(l,t,r,b);
-		dc.TextOut(l+1,t+1,pht.GetSize().Left(1)+"寸");
+		if (CPhoto *pht=dynamic_cast<CPhoto *>(pElement)) {
+			dc.TextOut(l+1,t+1,pht->GetSize().Left(1)+"寸");
+		}else if (CText *txt=dynamic_cast<CText *>(pElement)){
+			CFont font;
+			font.CreateFont(
+				b-t-2,                        // nHeight
+				0,                         // nWidth
+			   0,                         // nEscapement
+			   0,                         // nOrientation
+			   FW_NORMAL,                 // nWeight
+			   FALSE,                     // bItalic
+			   FALSE,                     // bUnderline
+			   0,                         // cStrikeOut
+			   ANSI_CHARSET,              // nCharSet
+			   OUT_DEFAULT_PRECIS,        // nOutPrecision
+			   CLIP_DEFAULT_PRECIS,       // nClipPrecision
+			   DEFAULT_QUALITY,           // nQuality
+			   DEFAULT_PITCH | FF_SWISS,  // nPitchAndFamily
+			   "宋体");                 // lpszFacename
+			CFont *pof=dc.SelectObject(&font);
+			dc.TextOut(l+1,t+1,"（显示标题文字）");
+			dc.SelectObject(pof);			
+		}
 	}
 }
 
@@ -91,11 +119,20 @@ void CCustomPageDlg::OnMouseMove(UINT nFlags, CPoint point)
 	// TODO: Add your message handler code here and/or call default
 	//CDialog::OnMouseMove(nFlags, point);
 
+	if (m_ClientRct.PtInRect(point))
+		m_bCross=true;
+	else
+		m_bCross=false;
+
 	UpdateData();
-	if (m_PhotoType<0 || m_PhotoType>3 ) return;
+	if (m_PhotoType<0 || m_PhotoType>4 ) return;
 	double fwidth,fheight;
 	int width,height;
-	CPhoto::Size2WH(PhotoTypeMap[m_PhotoType],fwidth,fheight);
+	if (m_PhotoType==4){
+		fwidth=10;fheight=1;
+	}else{
+		CPhoto::Size2WH(PhotoTypeMap[m_PhotoType],fwidth,fheight);
+	}
 	width=(int)(fwidth*FACTOR);
 	height=(int)(fheight*FACTOR);
 	
@@ -162,11 +199,16 @@ void CCustomPageDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: Add your message handler code here and/or call default
 	UpdateData();
-	if (m_PhotoType<0 || m_PhotoType>3 ) return;
+	if (m_PhotoType<0 || m_PhotoType>4 ) return;
 
 	double fwidth,fheight;
 	int width,height;
-	CPhoto::Size2WH(PhotoTypeMap[m_PhotoType],fwidth,fheight);
+	if (m_PhotoType==4){
+		fwidth=10;
+		fheight=1;
+	}else{
+		CPhoto::Size2WH(PhotoTypeMap[m_PhotoType],fwidth,fheight);
+	}
 	width=(int)(fwidth*FACTOR);
 	height=(int)(fheight*FACTOR);
 	
@@ -178,13 +220,13 @@ void CCustomPageDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	CRect cur(point,CPoint(point.x+width,point.y+height));
 	size_t size=m_photos.size();
 	for (size_t i=0;i<size;++i) {
-		CPhoto &pht=m_photos[i];
-		int l=(int)(pht.x*FACTOR)+m_ClientRct.left;
-		int t=(int)(pht.y*FACTOR)+m_ClientRct.top;
+		CElement *pElement=m_photos[i];
+		int l=(int)(pElement->x*FACTOR)+m_ClientRct.left;
+		int t=(int)(pElement->y*FACTOR)+m_ClientRct.top;
 		CPoint p(l,t);
-		CRect phtrct(p,CPoint(p.x+int(pht.width*FACTOR),p.y+int(pht.height*FACTOR)));
+		CRect phtrct(p,CPoint(p.x+int(pElement->width*FACTOR),p.y+int(pElement->height*FACTOR)));
 		if (IntersectRect(&phtrct,&phtrct,&cur)) {
-			AfxMessageBox("照片重叠!");
+			AfxMessageBox("照片(或文字)重叠!");
 			return;
 		}
 	}
@@ -193,8 +235,26 @@ void CCustomPageDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	cmx=(point.x-m_ClientRct.left)*1.0/FACTOR;
 	cmy=(point.y-m_ClientRct.top)*1.0/FACTOR;
 
-	CPhoto photo(cmx,cmy,PhotoTypeMap[m_PhotoType]);
-	m_photos.push_back(photo);
+	CElement *pElement;
+	if (m_PhotoType==4) {
+		bool found=false;
+		for (VecPElement::iterator it=m_photos.begin();it!=m_photos.end();++it){
+			if (dynamic_cast<CText *>(*it)) {
+				AfxMessageBox("文字框已经设定，请先删除先前的文字框！");
+				found=true;
+				break;
+			}
+		}
+		if (!found) {
+			pElement=new CText(cmx,cmy,cmx+fwidth,cmy+fheight,NULL);
+			m_photos.push_back(pElement);
+		}else {
+			return;
+		}
+	}else{
+		pElement=new CPhoto(cmx,cmy,PhotoTypeMap[m_PhotoType]);
+		m_photos.push_back(pElement);
+	}
 	
 	lastpoint.SetPoint(-1,-1);
 	Invalidate();
@@ -211,3 +271,25 @@ void CCustomPageDlg::OnRButtonDown(UINT nFlags, CPoint point)
 	Invalidate();
 
 }
+
+void CCustomPageDlg::OnBnClickedText()
+{
+	// TODO: Add your control notification handler code here
+	InvalidateRect(&m_ClientRct);
+	lastpoint.SetPoint(-1,-1);
+
+}
+
+BOOL CCustomPageDlg::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
+{
+	// TODO: Add your message handler code here and/or call default
+	if (m_bCross)
+		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_CROSS));
+	else
+		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+
+	return true;
+//	return CDialog::OnSetCursor(pWnd, nHitTest, message);
+}
+
+

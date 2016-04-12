@@ -1,8 +1,10 @@
 
 #include "stdafx.h"
+#include <memory.h>
+#include <LIMITS.H>
 #include "bitstrm.h"
 
-#define assert ASSERT
+#define assert(x) (x)
 #define  BS_DEF_BLOCK_SIZE   (1<<15)
 
 const ulong bs_bit_mask[] = {

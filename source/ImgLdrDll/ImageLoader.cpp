@@ -1,7 +1,81 @@
 #include "stdafx.h"
+#include <ctype.h>
+
 #include "ImageLoader.h"
 
-int LoadImageToBuf(const CString &filename, IplImage *img, int sizeofbuf)
+IplImage* LoadFImage( const char* filename )
+{
+  	CvImageFilters  img_Filters;
+    GrFmtReader* reader = 0;
+    IplImage* image = 0;
+
+    if( !filename || strlen(filename) == 0 )
+        return NULL;
+
+    reader = img_Filters.FindReader( filename );
+    if( !reader )
+        return NULL;
+
+    if( !reader->ReadHeader() )
+        return NULL;
+
+    CvSize size;
+    size.width = reader->GetWidth();
+    size.height = reader->GetHeight();
+
+    image = cvCreateImage( size, IPL_DEPTH_8U, 3 );
+
+    if( !reader->ReadData( (unsigned char*)(image->imageData),
+                           image->widthStep, 1 ))
+    {
+        cvReleaseImage( &image );
+        return NULL;
+    }
+    delete reader;
+
+    return image;
+}
+
+bool SaveFImage( const char* filename, const IplImage* arr )
+{
+ 	CvImageFilters  img_Filters;
+
+	int origin = 0;
+    int did_flip = 0;
+    GrFmtWriter* writer = 0;
+
+    CvMat stub, *image;
+    int channels;
+
+    if( !filename || strlen(filename) == 0 )
+        return false;
+
+    image = cvGetMat( arr, &stub );
+    origin = ((IplImage*)arr)->origin;
+    channels = arr->nChannels;
+
+	writer = img_Filters.FindWriter( filename );
+    if( !writer )
+        return false;
+    if( origin )  {
+        cvFlip( image, image, 0 );
+        did_flip = 1;
+    }
+
+    if( !writer->WriteImage( image->data.ptr, image->step, image->width,
+                             image->height, channels > 1 ))
+        return false;
+
+    delete writer;
+
+    if( origin && did_flip )
+        cvFlip( arr, (void*)arr, 0 );
+
+    return true;
+}
+
+
+int LoadImageToBuf(const char *filename, IplImage *img, int sizeofbuf)
 {
 	GrFmtReader* reader = 0;
 
@@ -12,6 +86,7 @@ int LoadImageToBuf(const CString &filename, IplImage *img, int sizeofbuf)
 	}
 	
 	if( !reader->ReadHeader() ) {
+		delete reader;
 		return IMG_LOAD_ERR;
 	}
 
@@ -19,6 +94,7 @@ int LoadImageToBuf(const CString &filename, IplImage *img, int sizeofbuf)
 	size.width = reader->GetWidth();
 	size.height = reader->GetHeight();
 	if ((size.width+3)*size.height*3>sizeofbuf) {
+		delete reader;
 		return BUF_SIZE_SMALL;
 	}
 	
@@ -42,12 +118,16 @@ int LoadImageToBuf(const CString &filename, IplImage *img, int sizeofbuf)
 
 	if( !reader->ReadData( (uchar *) img->imageData, img->widthStep, true ))
 	{
+		delete reader;
 		return IMG_LOAD_ERR;
 	}
+	delete reader;
 	return LOAD_SUC;
 
 
 }
+
+
 CvImageFilters::CvImageFilters()
 {
     m_factories = new GrFmtFactoriesList;

@@ -3,7 +3,7 @@
 #include "misc.h"
 #include "bitstrm.h"
 //#include "grfmts.h"
-
+//#include "ImgLdr.h"
 
 /////////////////////////////Image Loader////////////////////////////////////////
 
@@ -11,7 +11,10 @@
 #define BUF_SIZE_SMALL -2
 #define LOAD_SUC 0
 
-int LoadImageToBuf(const CString &filename, IplImage *img, int sizeofbuf);
+IplImage* LoadFImage( const char* filename );
+bool SaveFImage( const char* filename, const IplImage* arr );
+
+int LoadImageToBuf(const char *filename, IplImage *img, int sizeofbuf);
 
 
 

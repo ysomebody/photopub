@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "PhotoPub.h"
 
+#include "MainFrm.h"
 #include "PhotoPubDoc.h"
 #include "PhotoPubView.h"
 
@@ -20,6 +21,9 @@ IMPLEMENT_DYNCREATE(CPhotoPubView, CScrollView)
 
 BEGIN_MESSAGE_MAP(CPhotoPubView, CScrollView)
 	ON_WM_ERASEBKGND()
+	ON_BN_CLICKED(IDC_BUTTON1, &CPhotoPubView::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON2, &CPhotoPubView::OnBnClickedButton2)
+	ON_BN_CLICKED(ID_IMAGE_OPEN, &CPhotoPubView::OnBnClickedImageOpen)
 END_MESSAGE_MAP()
 
 // CPhotoPubView 构造/析构
@@ -29,6 +33,7 @@ CPhotoPubView::CPhotoPubView()
 	// TODO: 在此处添加构造代码
     m_bmi_buffer = (BITMAPINFO*)display_buffer;
     m_bmih_buffer = &(m_bmi_buffer->bmiHeader);
+	m_ratio=1;
 }
 
 CPhotoPubView::~CPhotoPubView()
@@ -47,13 +52,14 @@ BOOL CPhotoPubView::PreCreateWindow(CREATESTRUCT& cs)
 
 void CPhotoPubView::OnDraw(CDC* pDC)
 {
+
 	// TODO: 在此处为本机数据添加绘制代码
 	CPhotoPubDoc *pDoc=GetDocument();
 	IplImage *pImg=pDoc->GetImage();
 	int wid=0,hi=0;
 
 	CRect ClipBox;
-	pDC->GetClipBox(&ClipBox);
+	GetClientRect(&ClipBox);
 	if (!pImg) {
 		CBitmap bkg;
 		bkg.LoadBitmap(IDB_BACKGROUND);
@@ -62,8 +68,17 @@ void CPhotoPubView::OnDraw(CDC* pDC)
 		return;
 	}
 
-	wid=pImg->width;
-	hi=pImg->height;
+	wid=int(pImg->width*m_ratio);
+	hi=int(pImg->height*m_ratio);
+
+	IplImage *pStub=pImg;
+	IplImage *pTmp=NULL;
+	if (wid!=pImg->width) {
+		pTmp=cvCreateImage(cvSize(wid,hi),IPL_DEPTH_8U,3);
+		cvResize(pImg,pTmp);
+		pStub=pTmp;
+	}
+		
 
 	CRgn WindowRgn;
 	WindowRgn.CreateRectRgnIndirect(&ClipBox);
@@ -88,17 +103,21 @@ void CPhotoPubView::OnDraw(CDC* pDC)
     m_bmih_buffer->biBitCount = 24;
     m_bmih_buffer->biCompression = BI_RGB;
 
+
 	SetDIBitsToDevice(
 		pDC->m_hDC, 
-		ImageRect.left,ImageRect.top,ImageRect.Width(),ImageRect.Height(), 
-		0, 0, 0, hi, pImg->imageData, m_bmi_buffer, DIB_RGB_COLORS 
+		ImageRect.left,ImageRect.top,pStub->width,pStub->height, 
+		0, 0, 0, hi, pStub->imageData, m_bmi_buffer, DIB_RGB_COLORS 
 	);
 
+	cvReleaseImage(&pTmp);
 
 }
 
 void CPhotoPubView::OnInitialUpdate()
 {
+	((CMainFrame*)GetParent())->SetRatio(int(m_ratio*100));
+
 	CScrollView::OnInitialUpdate();
 
 	CSize sizeTotal;
@@ -140,8 +159,8 @@ void CPhotoPubView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pH
 	// TODO: 计算此视图的合计大小
 	IplImage *pImg=pDoc->GetImage();
 	if (!pImg) return;
-	sizeTotal.cx = pImg->width;
-	sizeTotal.cy = pImg->height;
+	sizeTotal.cx = long(pImg->width*m_ratio);
+	sizeTotal.cy = long(pImg->height*m_ratio);
 	SetScrollSizes(MM_TEXT, sizeTotal);
 
 	Invalidate();
@@ -155,3 +174,31 @@ BOOL CPhotoPubView::OnEraseBkgnd(CDC* pDC)
 	return TRUE;//CScrollView::OnEraseBkgnd(pDC);
 }
 
+
+void CPhotoPubView::OnBnClickedButton1()
+{
+	// TODO: Add your control notification handler code here
+	m_ratio/=1.2;
+	((CMainFrame*)GetParent())->SetRatio(int(m_ratio*100));
+	OnUpdate(NULL,NULL,NULL);
+
+}
+
+void CPhotoPubView::OnBnClickedButton2()
+{
+	// TODO: Add your control notification handler code here
+	m_ratio*=1.2;
+	((CMainFrame*)GetParent())->SetRatio(int(m_ratio*100));
+	OnUpdate(NULL,NULL,NULL);
+}
+
+void CPhotoPubView::OnBnClickedImageOpen()
+{
+	m_ratio=1;
+	((CMainFrame*)GetParent())->SetRatio(int(m_ratio*100));
+	CPhotoPubDoc* pDoc = GetDocument();
+	ASSERT_VALID(pDoc);
+	pDoc->OnOpenImage();
+	
+	// TODO: Add your control notification handler code here
+}

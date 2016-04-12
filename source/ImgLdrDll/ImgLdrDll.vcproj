@@ -2,10 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="PhotoPub"
-	ProjectGUID="{7583C0DE-0044-472A-934A-9A4BC18AE45D}"
-	RootNamespace="PhotoPub"
-	Keyword="MFCProj"
+	Name="ImgLdrDll"
+	ProjectGUID="{6C04745D-DBB6-4CCD-9076-1E732FF6EC96}"
+	RootNamespace="ImgLdrDll"
+	Keyword="Win32Proj"
 	>
 	<Platforms>
 		<Platform
@@ -19,8 +19,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			UseOfMFC="1"
+			ConfigurationType="2"
 			CharacterSet="0"
 			>
 			<Tool
@@ -37,17 +36,14 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="false"
-				ValidateParameters="false"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -58,18 +54,13 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="2052"
-				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cxcored.lib cvd.lib ImgLdrDll\libjpeg.lib"
-				LinkIncremental="2"
-				IgnoreDefaultLibraryNames="MSVCRT"
+				AdditionalDependencies="cxcore.lib libjpeg.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -103,8 +94,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			UseOfMFC="1"
+			ConfigurationType="2"
 			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
@@ -122,15 +112,11 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="false"
-				ValidateParameters="false"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
-				MinimalRebuild="false"
-				RuntimeLibrary="0"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -141,18 +127,13 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="2052"
-				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cxcore.lib cv.lib ImgLdrDll\libjpeg.lib"
-				LinkIncremental="1"
-				IgnoreDefaultLibraryNames="MSVCRT"
+				AdditionalDependencies="cxcore.lib libjpeg.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -189,102 +170,28 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
-			>
-			<File
-				RelativePath=".\CustomPageDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\MainFrm.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Page.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PgSelectDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Photo.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PhotoPub.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PhotoPubDoc.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PhotoPubView.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProgressDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SizeDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\stdafx.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\CustomPageDlg.cpp"
+				RelativePath=".\bitstrm.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\MainFrm.cpp"
+				RelativePath=".\grfmt_bmp.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Page.cpp"
+				RelativePath=".\grfmt_jpeg.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\PgSelectDlg.cpp"
+				RelativePath=".\ImageLoader.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Photo.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\PhotoPub.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\PhotoPubDoc.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\PhotoPubView.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProgressDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SizeDlg.cpp"
+				RelativePath=".\misc.cpp"
 				>
 			</File>
 			<File
@@ -309,56 +216,40 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\res\bitmap1.bmp"
+				RelativePath=".\bitstrm.h"
 				>
 			</File>
 			<File
-				RelativePath=".\res\PhotoPub.ico"
+				RelativePath=".\ImageLoader.h"
 				>
 			</File>
 			<File
-				RelativePath=".\PhotoPub.rc"
+				RelativePath=".\ImgLdr.h"
 				>
 			</File>
 			<File
-				RelativePath=".\res\PhotoPub.rc2"
+				RelativePath=".\jconfig.h"
 				>
 			</File>
 			<File
-				RelativePath=".\res\PhotoPubDoc.ico"
+				RelativePath=".\jmorecfg.h"
 				>
 			</File>
 			<File
-				RelativePath=".\res\Toolbar.bmp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="NewFilter1"
-			>
-			<File
-				RelativePath=".\ImgLdrDll\bitstrm.cpp"
+				RelativePath=".\jpeglib.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ImgLdrDll\grfmt_bmp.cpp"
+				RelativePath=".\misc.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ImgLdrDll\grfmt_jpeg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ImgLdrDll\ImageLoader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ImgLdrDll\misc.cpp"
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 		</Filter>
@@ -368,9 +259,5 @@
 		</File>
 	</Files>
 	<Globals>
-		<Global
-			Name="RESOURCE_FILE"
-			Value="PhotoPub.rc"
-		/>
 	</Globals>
 </VisualStudioProject>

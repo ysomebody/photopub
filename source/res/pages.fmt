@@ -21,6 +21,7 @@ PhotoNum=18
 9.0,8.5
 11.9,8.5
 14.8,8.5
+AddTitle=0
 [2]
 PageSize=5
 TypeNum=2
@@ -30,4 +31,6 @@ PhotoNum=1
 PhotoSize=2
 PhotoNum=1
 5.5,3.5
+AddTitle=1
+1,7.9,10,8.5
 [End]

@@ -26,49 +26,38 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
 // Dialog
 //
 
-IDD_PGSEL DIALOGEX 0, 0, 229, 196
+IDD_PGSEL DIALOGEX 0, 0, 261, 278
 STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_CAPTION
 CAPTION "选择排版格式"
 FONT 9, "宋体", 400, 0, 0x86
 BEGIN
-    COMBOBOX        IDC_COMBO1,25,21,50,47,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO1,25,21,50,57,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "选择版面尺寸",IDC_STATIC,27,7,49,8
-    LTEXT           "选择排版样式",IDC_STATIC,127,7,49,8
-    COMBOBOX        IDC_COMBO2,100,21,105,47,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "",IDC_PREVIEW,"Static",SS_BLACKFRAME,42,62,139,90
-    LTEXT           "预览效果",IDC_STATIC,44,48,33,8
-    DEFPUSHBUTTON   "取消",IDCANCEL,123,175,50,14
-    DEFPUSHBUTTON   "选用版式",IDOK,42,175,50,14
-    CONTROL         "生成预览照片",IDC_GENPREV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,82,157,64,10
+    LTEXT           "选择排版样式",IDC_STATIC,139,7,49,8
+    COMBOBOX        IDC_COMBO2,111,21,105,121,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_PREVIEW,"Static",SS_BLACKFRAME,7,46,247,187
+    LTEXT           "预览效果",IDC_STATIC,24,43,33,8
+    DEFPUSHBUTTON   "取消",IDCANCEL,146,257,50,14
+    DEFPUSHBUTTON   "选用版式",IDOK,65,257,50,14
+    CONTROL         "生成预览照片",IDC_GENPREV,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,103,239,64,14
+    CONTROL         "",IDC_PREVIEW2,"Static",SS_BLACKFRAME,7,46,247,187
 END
 
-IDD_TREEDLG DIALOGEX 0, 0, 209, 220
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "选择照片文件夹"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    DEFPUSHBUTTON   "确定",IDOK,99,198,50,14
-    PUSHBUTTON      "取消",IDCANCEL,151,198,50,14
-    EDITTEXT        IDC_SELECTION,23,201,123,12,ES_AUTOHSCROLL | NOT WS_VISIBLE
-    CONTROL         "",IDC_TREE1,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,7,14,195,160
-    DEFPUSHBUTTON   "Set",IDC_SETPATH,7,196,50,14,NOT WS_VISIBLE
-    LTEXT           "Static",IDC_PATHNAME,37,177,162,9,SS_PATHELLIPSIS
-    LTEXT           "文件夹:",IDC_STATIC,7,178,28,8
-END
-
-IDD_ADDPAGE DIALOGEX 0, 0, 345, 216
+IDD_ADDPAGE DIALOGEX 0, 0, 343, 216
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "自定义版式"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "确定",IDOK,53,195,50,14
-    PUSHBUTTON      "取消",IDCANCEL,130,195,50,14
+    DEFPUSHBUTTON   "确定",IDOK,51,195,50,14
+    PUSHBUTTON      "取消",IDCANCEL,144,195,50,14
     CONTROL         "",IDC_PAGESETTING,"Static",SS_BLACKFRAME,7,7,252,174
     LTEXT           "版面设计",IDC_STATIC,13,11,33,8
-    CONTROL         "V1",IDC_V1,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,264,15,34,39
-    CONTROL         "H1",IDC_H1,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE,304,15,34,39
-    CONTROL         "V2",IDC_V2,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE,263,60,34,39
-    CONTROL         "H2",IDC_H2,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE,304,60,34,39
+    CONTROL         "V1",IDC_V1,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,262,14,34,39
+    CONTROL         "H1",IDC_H1,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE,302,15,34,39
+    CONTROL         "V2",IDC_V2,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE,262,60,34,39
+    CONTROL         "H2",IDC_H2,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE,302,60,34,39
+    CONTROL         "Text",IDC_TEXT,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE,261,104,75,16
+    CONTROL         "保存当前版式",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,268,139,64,15
 END
 
 IDD_PAGESIZE DIALOGEX 0, 0, 125, 66
@@ -80,6 +69,17 @@ BEGIN
     PUSHBUTTON      "取消",IDCANCEL,68,45,50,14
     COMBOBOX        IDC_COMBO3,43,14,75,44,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "版面尺寸",IDC_STATIC,7,17,33,8
+END
+
+IDD_PROGRESS DIALOGEX 0, 0, 183, 92
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+CAPTION "批量排版"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "完成",IDOK,27,71,50,14,WS_DISABLED
+    PUSHBUTTON      "中止",IDCANCEL,106,71,50,14
+    CONTROL         "",IDC_PROGRESS1,"msctls_progress32",WS_BORDER | 0x1,15,30,152,9
+    LTEXT           "正在排版,请稍候...",IDC_TEXT,16,18,142,8
 END
 
 
@@ -94,23 +94,15 @@ BEGIN
     IDD_PGSEL, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 222
+        RIGHTMARGIN, 254
         TOPMARGIN, 7
-        BOTTOMMARGIN, 189
-    END
-
-    IDD_TREEDLG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 202
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 213
+        BOTTOMMARGIN, 271
     END
 
     IDD_ADDPAGE, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 338
+        RIGHTMARGIN, 336
         TOPMARGIN, 7
         BOTTOMMARGIN, 209
     END
@@ -121,6 +113,14 @@ BEGIN
         RIGHTMARGIN, 118
         TOPMARGIN, 7
         BOTTOMMARGIN, 59
+    END
+
+    IDD_PROGRESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 176
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 85
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -148,22 +148,28 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "关于 PhotoPub"
 FONT 9, "宋体", 0, 0, 0x1
 BEGIN
-    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    ICON            IDR_Home,IDC_STATIC,11,17,20,20
     LTEXT           "PhotoPub 1.0 版",IDC_STATIC,40,10,119,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2006",IDC_STATIC,40,25,119,8
     DEFPUSHBUTTON   "确定",IDOK,178,7,50,16,WS_GROUP
 END
 
-IDD_MENUBAR DIALOGEX 0, 0, 67, 211
+IDD_MENUBAR DIALOGEX 0, 0, 67, 313
 STYLE DS_SETFONT | DS_3DLOOK | DS_FIXEDSYS | WS_CHILD
 EXSTYLE WS_EX_STATICEDGE
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "打开照片",ID_IMAGE_OPEN,7,7,53,16
-    PUSHBUTTON      "选择版式",ID_SELPAGE,7,31,53,16
-    PUSHBUTTON      "保存排版照片",ID_PREVIEW,7,55,53,16
-    PUSHBUTTON      "批量排版",ID_BATCHPUB,7,78,53,16
-    PUSHBUTTON      "自定义版式",ID_CSTPAGE,7,102,53,16
+    PUSHBUTTON      "打开照片",ID_IMAGE_OPEN,6,6,54,38
+    PUSHBUTTON      "排版当前照片",ID_SELPAGE,6,48,54,38
+    PUSHBUTTON      "保存当前照片",ID_PREVIEW,6,90,54,38
+    PUSHBUTTON      "自定义版式",ID_CSTPAGE,7,252,53,16,NOT WS_VISIBLE
+    PUSHBUTTON      "缩小",IDC_BUTTON1,7,268,23,19
+    PUSHBUTTON      "放大",IDC_BUTTON2,37,268,23,19
+    LTEXT           "比例",IDC_STATIC,10,294,17,8
+    LTEXT           "%",IDC_STATIC,47,294,13,8
+    EDITTEXT        IDC_EDIT1,31,294,15,12,ES_READONLY | ES_NUMBER | NOT WS_BORDER,WS_EX_TRANSPARENT | WS_EX_RIGHT
+    PUSHBUTTON      "批量排版",ID_BATCHPUB,6,132,54,38
+    PUSHBUTTON      "批量缩略图",IDC_THUMB,6,174,54,39
 END
 
 
@@ -188,7 +194,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 60
         TOPMARGIN, 7
-        BOTTOMMARGIN, 204
+        BOTTOMMARGIN, 306
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -201,21 +207,21 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "res\\PhotoPub.ico"
+IDR_Home                ICON                    "res\\PhotoPub.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Bitmap
 //
 
-IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+IDR_Home                BITMAP                  "res\\Toolbar.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Toolbar
 //
 
-IDR_MAINFRAME TOOLBAR  16, 15
+IDR_Home TOOLBAR  16, 15
 BEGIN
     BUTTON      ID_FILE_NEW
     BUTTON      ID_FILE_OPEN
@@ -235,7 +241,7 @@ END
 // Menu
 //
 
-IDR_MAINFRAME MENU 
+IDR_Home MENU 
 BEGIN
     POPUP "文件(&F)"
     BEGIN
@@ -273,7 +279,7 @@ END
 // Accelerator
 //
 
-IDR_MAINFRAME ACCELERATORS 
+IDR_Home ACCELERATORS 
 BEGIN
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
@@ -297,13 +303,13 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 0,1,0,0
+ PRODUCTVERSION 0,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
- FILEFLAGS 0x1L
+ FILEFLAGS 0x21L
 #else
- FILEFLAGS 0x0L
+ FILEFLAGS 0x20L
 #endif
  FILEOS 0x4L
  FILETYPE 0x1L
@@ -313,14 +319,14 @@ BEGIN
     BEGIN
         BLOCK "080403a8"
         BEGIN
-            VALUE "CompanyName", "TODO: <公司名>"
-            VALUE "FileDescription", "TODO: <文件说明>"
-            VALUE "FileVersion", "1.0.0.1"
-            VALUE "InternalName", "PhotoPub.exe"
-            VALUE "LegalCopyright", "TODO: (C) <公司名>。保留所有权利。"
+            VALUE "FileDescription", "证件照排版专用软件"
+            VALUE "FileVersion", "0.1"
+            VALUE "InternalName", "PhotoPub"
+            VALUE "LegalCopyright", "Copyright Reserved. (Ying Yiting)"
             VALUE "OriginalFilename", "PhotoPub.exe"
-            VALUE "ProductName", "TODO: <产品名>"
-            VALUE "ProductVersion", "1.0.0.1"
+            VALUE "ProductName", "PhotoPub"
+            VALUE "ProductVersion", "0.1"
+            VALUE "SpecialBuild", "Virgin"
         END
     END
     BLOCK "VarFileInfo"

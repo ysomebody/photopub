@@ -18,9 +18,8 @@ class CCustomPageDlg : public CDialog
 
 public:
 	CString m_Size;
-	vector<CPhoto> m_photos;
+	VecPElement m_photos;
 
-public:
 	CCustomPageDlg(CWnd* pParent, CString size);   // standard constructor
 	virtual ~CCustomPageDlg();
 
@@ -28,6 +27,7 @@ public:
 	enum { IDD = IDD_ADDPAGE };
 
 protected:
+	bool m_bCross;
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnInitDialog();
 
@@ -41,6 +41,12 @@ public:
 	afx_msg void OnBnClickedV2();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
+	afx_msg void OnBnClickedText();
 
 	void Client2Valid(CPoint &point,const CRect &ValidRct);
+
+	int m_save;
+
+
 };

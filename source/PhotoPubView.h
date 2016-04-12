@@ -38,6 +38,7 @@ protected:
     uchar display_buffer[sizeof(BITMAPINFOHEADER) + 1024];
 	BITMAPINFO* m_bmi_buffer;
     BITMAPINFOHEADER* m_bmih_buffer;
+	double m_ratio;
 	
 
 // 生成的消息映射函数
@@ -46,6 +47,12 @@ protected:
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
 public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+public:
+	afx_msg void OnBnClickedButton1();
+public:
+	afx_msg void OnBnClickedButton2();
+public:
+	afx_msg void OnBnClickedImageOpen();
 };
 
 #ifndef _DEBUG  // PhotoPubView.cpp 中的调试版本

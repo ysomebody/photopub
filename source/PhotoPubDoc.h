@@ -9,17 +9,13 @@
 #include <vector>
 using namespace std;
 
+
+
 class CPhotoPubDoc : public CDocument
 {
 protected: // 仅从序列化创建
 	CPhotoPubDoc();
 	DECLARE_DYNCREATE(CPhotoPubDoc)
-
-// 属性
-public:
-
-// 操作
-public:
 
 // 重写
 public:
@@ -43,23 +39,25 @@ protected:
 	IplImage *m_pOpenedImage;
 	IplImage *m_pPreviewImage;
 	IplImage *m_pPublishingImage;
+	CString m_filename;
 public:
 	IplImage * GetImage(void);
-	vector<CPage> m_PreDefinedPages;
+	VecPPage m_PreDefinedPages;
 	CPage *m_pPageSetting;
 public:
 	afx_msg void OnOpenImage();
-public:
 	afx_msg void OnBnClickedSelpage();
+	afx_msg void OnBnClickedSavePreview();
+	afx_msg void OnBnClickedBatchPub();
+	afx_msg void OnBnClickedCstpage();
+
 protected:
 	enum {ORG,PRV,SEL} m_Show;
 	bool ReadPreDefPages(void);
+	bool WriteDefPages(void);
+
 public:
-	afx_msg void OnBnClickedSavePreview();
-public:
-	afx_msg void OnBnClickedBatchPub();
-public:
-	afx_msg void OnBnClickedCstpage();
+	afx_msg void OnBnClickedThumb();
 };
 
 

@@ -11,7 +11,7 @@ class CPgSelectDlg : public CDialog
 	DECLARE_DYNAMIC(CPgSelectDlg)
 
 public:
-	CPgSelectDlg(CWnd* pParent , vector<CPage> &pages, bool bCanPreview);   // standard constructor
+	CPgSelectDlg(CWnd* pParent , VecPPage &pages, bool bCanPreview);   // standard constructor
 	virtual ~CPgSelectDlg();
 
 // Dialog Data
@@ -27,16 +27,14 @@ public:
 protected:
 	CComboBox m_PageSizeList;
 	CComboBox m_PageList;
-	vector<CPage> &m_PageSettings;
+	VecPPage &m_PageSettings;
 	bool m_bCanPreview;
 
 public:
 	afx_msg void OnCbnSelchangeCombo1();
-public:
 	afx_msg void OnPaint();
-	CPage * GetCurrentPageSetting(void);
-public:
 	afx_msg void OnCbnSelchangeCombo2();
 public:
 	BOOL m_bGenPreview;
+	CPage * GetCurrentPageSetting(void);
 };

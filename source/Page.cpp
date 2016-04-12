@@ -1,27 +1,81 @@
 #include "StdAfx.h"
 #include "Page.h"
-#include <highgui.h>
-#include "ImageLoader\ImageLoader.h"
-
+#include "ProgressDlg.h"
+#include "ImgLdrDll\ImageLoader.h"
 
 
 #define MAX_BUF_SIZE 1024
+
+CPage::CPage(CString size, VecPElement photos)
+:m_Size(size),m_photos(photos),m_pTitle(NULL)
+{
+
+	//生成页面尺寸、描述
+	Size2WH(m_Size, m_width, m_height);
+	m_SizeDiscription=m_Size+"寸";
+
+	//生成照片种类统计、设置文字缓存
+	for (VecPElement::iterator it=m_photos.begin();it!=m_photos.end();++it){
+		if (CPhoto *pPhoto=dynamic_cast<CPhoto *>(*it)) {
+			CString &photosize=pPhoto->GetSize();
+			map<CString, int>::iterator findres=m_TypeNum.find(photosize);
+			if (findres==m_TypeNum.end()) {
+				m_TypeNum[photosize]=1;
+			}else{
+				findres->second++;
+			}
+		}else if(CText *pText=dynamic_cast<CText *>(*it)){
+			m_pTitle=cvCreateImage(cvSize(Cm2Dot(pText->width),Cm2Dot(pText->height)),IPL_DEPTH_8U,3);
+			pText->SetBuffer(m_pTitle);
+		}
+	}
+
+	//统计尺寸，生成版面描述
+	int typenum=0;
+	char buf[MAX_BUF_SIZE];
+	for (int i=1;i<=2;++i){
+		int num=0;
+		map<CString,int>::iterator it;
+		_itoa_s(i,buf,10);
+		it = m_TypeNum.find(buf);
+		if (it!=m_TypeNum.end()) num+=it->second;
+		buf[1]='\'';buf[2]='\0';
+		it = m_TypeNum.find(buf);
+		if (it!=m_TypeNum.end()) num+=it->second;
+		if (num>0){
+			typenum++;
+			buf[1]='\0';
+			m_PageDiscription+=CString(buf)+"寸";
+			_itoa_s(num,buf,10);
+			m_PageDiscription+=CString(buf)+"张";
+		}
+	}
+	if (typenum>1) m_PageDiscription+="混排";
+	if (m_pTitle) m_PageDiscription+="加字";
+
+}
+CPage::~CPage(void)
+{
+	for(VecPElement::iterator it=m_photos.begin();it!=m_photos.end();++it) {
+		delete (*it);
+		*it=NULL;
+	}
+	cvReleaseImage(&m_pTitle);
+}
+
 bool CPage::LoadPage(FILE *&fp)
 {
 	char buf[MAX_BUF_SIZE];
 
 	if (!fp) return false;
-
 	
 	//set up page
 	fscanf_s(fp,"%9s",buf,MAX_BUF_SIZE);	//PageSize=
 	fscanf_s(fp,"%s",buf,MAX_BUF_SIZE);
 	m_Size=buf;
-
 	Size2WH(m_Size, m_width, m_height);
 	m_SizeDiscription=m_Size+"寸";
 
-	
 	//set up photos on the page
 	int typenum=0;
 	fscanf_s(fp,"%8s",buf,MAX_BUF_SIZE);	//TypeNum=
@@ -36,30 +90,35 @@ bool CPage::LoadPage(FILE *&fp)
 		int nphoto=0;
 		fscanf_s(fp,"%9s",buf,MAX_BUF_SIZE);	//PhotoNum=
 		fscanf_s(fp,"%d",&nphoto);
-		//_itoa_s(nphoto,buf,10);
 
+		//add photo num to TypeNum
 		pair <CString, int> data(photosize,nphoto);
 		pair< map<CString,int>::iterator, bool > res;
 		res=m_TypeNum.insert(data);
 		if (res.second==false)
 			m_TypeNum[buf]+=nphoto;
 
+		//Generate photos
 		for (int j=0;j<nphoto;++j){
 			double x,y;
 			fscanf_s(fp,"%lf,%lf",&x,&y);
-			CPhoto photo(x,y,photosize);
-			m_photos.push_back(photo);
+			CPhoto *pPhoto=new CPhoto(x,y,photosize);
+			m_photos.push_back(pPhoto);
 		}
-		//alloc the memory for the type of photo
-		int wid=Cm2Dot(m_photos.back().width);
-		int hi=Cm2Dot(m_photos.back().height);
-		IplImage *p=cvCreateImage(cvSize(wid,hi),IPL_DEPTH_8U,3);
-		pair <CString, IplImage*> idata(photosize,p);
-		pair< map<CString,IplImage*>::iterator, bool > ires;
-		ires=m_TypeImage.insert(idata);
-		if (ires.second==false) {
-			cvReleaseImage(&p);
-		}
+	}
+
+	//添加文字及其缓存
+	int IsTitle;
+	fscanf_s(fp,"%9s",buf,MAX_BUF_SIZE);	//AddTitle=
+	fscanf_s(fp,"%d",&IsTitle);
+	if (IsTitle) {
+		double x0,y0,x1,y1;
+		fscanf_s(fp,"%lf,%lf,%lf,%lf",&x0,&y0,&x1,&y1);
+		m_pTitle=cvCreateImage(cvSize(Cm2Dot(x1-x0),Cm2Dot(y1-y0)),IPL_DEPTH_8U,3);
+		CText *pText=new CText(x0,y0,x1,y1,m_pTitle);
+		m_photos.push_back(pText);
+	}else{
+		m_pTitle=NULL;
 	}
 
 	//统计尺寸，生成版面描述
@@ -81,71 +140,64 @@ bool CPage::LoadPage(FILE *&fp)
 		}
 	}
 	if (typenum>1) m_PageDiscription+="混排";
+	if (m_pTitle) m_PageDiscription+="加字";
+
 	return true;
 }
-CPage::CPage(CString size, vector<CPhoto> photos)
-:m_Size(size),m_photos(photos)
-{
 
-	//生成页面尺寸、描述
-	Size2WH(m_Size, m_width, m_height);
-	m_SizeDiscription=m_Size+"寸";
+bool CPage::SavePage(FILE *&fp)
+{
+	//char buf[MAX_BUF_SIZE];
+
+	if (!fp) return false;
 	
-	//生成照片种类统计、缓存
-	size_t nphts=photos.size();
-	for (size_t i=0;i<nphts;++i) {
-		CString photosize=photos[i].GetSize();
-		pair <CString, int> data(photosize,1);
-		pair< map<CString,int>::iterator, bool > res;
-		res=m_TypeNum.insert(data);
-		if (res.second==false){
-			m_TypeNum[photosize]++;
-		}else{
-			int wid=Cm2Dot(photos[i].width);
-			int hi=Cm2Dot(photos[i].height);
-			IplImage *p=cvCreateImage(cvSize(wid,hi),IPL_DEPTH_8U,3);
-			pair <CString, IplImage*> idata(photosize,p);
-			pair< map<CString,IplImage*>::iterator, bool > ires;
-			ires=m_TypeImage.insert(idata);
-			if (ires.second==false) {
-				cvReleaseImage(&p);
+	//save page
+	fprintf_s(fp,"PageSize=%s\n",m_Size);	//PageSize=
+
+	//save photos on the page
+	size_t typenum=m_TypeNum.size();
+	fprintf_s(fp,"TypeNum=%d\n",typenum);	//TypeNum=
+
+	for(map<CString,int>::iterator it=m_TypeNum.begin();it!=m_TypeNum.end();++it)
+	{
+		fprintf_s(fp,"PhotoSize=%s\n",it->first);	//PhotoSize=
+		fprintf_s(fp,"PhotoNum=%d\n",it->second);	//PhotoNum=
+
+		//save photos
+		for (VecPElement::iterator ele=m_photos.begin();ele!=m_photos.end();++ele){
+			if (CPhoto *pPhoto=dynamic_cast<CPhoto *>(*ele)) {
+				if (pPhoto->GetSize()==it->first)
+					fprintf_s(fp,"%.1f,%.1f\n",pPhoto->x,pPhoto->y);
 			}
 		}
 	}
 
-	//统计尺寸,生成版面描述
-	char buf[MAX_BUF_SIZE];
-	int num,tpnum=0;
-	for (int i=1;i<=2;++i){
-		num=0;
-		map<CString,int>::iterator it;
-		_itoa_s(i,buf,10);
-		it = m_TypeNum.find(buf);
-		if (it!=m_TypeNum.end()) num+=it->second;
-		buf[1]='\'';buf[2]='\0';
-		it = m_TypeNum.find(buf);
-		if (it!=m_TypeNum.end()) num+=it->second;
-		if (num>0){
-			tpnum++;
-			buf[1]='\0';
-			m_PageDiscription+=CString(buf)+"寸";
-			_itoa_s(num,buf,10);
-			m_PageDiscription+=CString(buf)+"张";
+	
+	//save text
+	int IsTitle=(m_pTitle)?1:0;
+
+	fprintf_s(fp,"AddTitle=%d\n",IsTitle);	//AddTitle=
+	if (IsTitle) {
+		double x0,y0,x1,y1;
+		for (VecPElement::iterator ele=m_photos.begin();ele!=m_photos.end();++ele){
+			if (CText *pText=dynamic_cast<CText *>(*ele)){
+				x0=pText->x;y0=pText->y;
+				x1=pText->x+pText->width;
+				y1=pText->y+pText->height;
+				break;
+			}
 		}
+		fprintf_s(fp,"%.1f,%.1f,%.1f,%.1f\n",x0,y0,x1,y1);
 	}
-	if (tpnum>1) m_PageDiscription+="混排";
-}
-CPage::~CPage(void)
-{
-	map<CString,IplImage *>::iterator it;
-	for (it=m_TypeImage.begin();it!=m_TypeImage.end();++it)
-		cvReleaseImage(&(it->second));
+
+
+	return true;
 }
 
-void CPage::PreView(CDC *pDC,CRect *pRect)
+void CPage::PreView(CDC *pDC,CRect *pRect,int FACTOR)
 {
-	int width=int(m_width*10);
-	int height=int(m_height*10);
+	int width=int(m_width*FACTOR);
+	int height=int(m_height*FACTOR);
 	
 	int left=abs(pRect->Width()-width)/2 + pRect->left;
 	int right=left+width;
@@ -154,18 +206,41 @@ void CPage::PreView(CDC *pDC,CRect *pRect)
 
 	pDC->Rectangle(left,top,right,bot);
 
-	vector<CPhoto>::iterator it;
+	VecPElement::iterator it;
 	for(it=m_photos.begin();it!=m_photos.end();++it) {
-		int l=int(it->x*10) + left;
-		int r=int(it->right()*10) + left;
-		int t=int(it->y*10) + top;
-		int b=int(it->bottom()*10) + top;
+		CElement *pElement=*it;
+		int l=int(pElement->x*FACTOR) + left;
+		int r=int(pElement->right()*FACTOR) + left;
+		int t=int(pElement->y*FACTOR) + top;
+		int b=int(pElement->bottom()*FACTOR) + top;
 		pDC->Rectangle(l,t,r,b);
-		pDC->TextOut(l+1,t+1,it->GetSize().Left(1)+"寸");
+		if (CPhoto *pPht=dynamic_cast<CPhoto *>(pElement)) {
+			pDC->TextOut(l+1,t+1,pPht->GetSize().Left(1)+"寸");
+		}else if(CText *pTxt=dynamic_cast<CText *>(pElement)){
+			CFont font;
+			font.CreateFont(
+				b-t-2,                        // nHeight
+				0,                         // nWidth
+			   0,                         // nEscapement
+			   0,                         // nOrientation
+			   FW_NORMAL,                 // nWeight
+			   FALSE,                     // bItalic
+			   FALSE,                     // bUnderline
+			   0,                         // cStrikeOut
+			   ANSI_CHARSET,              // nCharSet
+			   OUT_DEFAULT_PRECIS,        // nOutPrecision
+			   CLIP_DEFAULT_PRECIS,       // nClipPrecision
+			   DEFAULT_QUALITY,           // nQuality
+			   DEFAULT_PITCH | FF_SWISS,  // nPitchAndFamily
+			   "宋体");                 // lpszFacename
+			CFont *pof=pDC->SelectObject(&font);
+			pDC->TextOut(l+1,t+1,"（显示标题文字）");
+			pDC->SelectObject(pof);			
+		}
 	}
 }
 
-void CPage::PublishSingle(IplImage * pImg, IplImage *& pPub)
+void CPage::PublishSingle(IplImage * pImg, IplImage *& pPub, const CString& text)
 {
 	//create a white page
 	int pagewidth=Cm2Dot(m_width);
@@ -174,10 +249,10 @@ void CPage::PublishSingle(IplImage * pImg, IplImage *& pPub)
 	pPub=cvCreateImage(cvSize(pagewidth,pageheight), IPL_DEPTH_8U,3);
 	memset(pPub->imageData,255,pPub->widthStep*pPub->height);
 
-	Publish(pImg,pPub);
+	Publish(pImg,pPub,text);
 	
 }
-void CPage::Size2WH(CString &size, double &width, double &height)
+void CPage::Size2WH(const CString &size, double &width, double &height)
 {
 	if (size=="7") {
 		width=17.8;
@@ -201,6 +276,7 @@ int CPage::PublishDir(const CString &srcpath,const CString &tarpath)
 
 	set<CString> Filenames;
 	const int nFiles=GetAllFolderFile(srcpath, "*.jpg", Filenames);
+	int nProcessedFiles=0;
 	if (!nFiles) {
 		return 0;
 	}else{
@@ -210,7 +286,7 @@ int CPage::PublishDir(const CString &srcpath,const CString &tarpath)
 		void *PreservedSpace=new char[PreservedSize];
 		IplImage *pPub=cvCreateImage(cvSize(pagewidth,pageheight),IPL_DEPTH_8U,3);
 		
-		for (it=Filenames.begin();it!=Filenames.end();++it) {
+	for (it=Filenames.begin();!g_sigend && it!=Filenames.end();++it) {
 
 			//read the file
 			IplImage imghead;
@@ -219,37 +295,40 @@ int CPage::PublishDir(const CString &srcpath,const CString &tarpath)
 			int res=LoadImageToBuf(srcpath+"\\"+*it,&imghead,PreservedSize);
 			if( res!=LOAD_SUC)
 			{
-				AfxMessageBox(CString("读取文件")+*it+"失败");
+				AfxMessageBox(CString("读取文件")+*it+"失败,跳过...");
 				continue;
 			}
 
 			//here: publish
 			memset(pPub->imageData,255,pPub->widthStep*pPub->height);
-			Publish(&imghead,pPub);
+			Publish(&imghead,pPub,it->Left(it->Find('.')));
 
-			cvSaveImage(tarpath+"\\排版_"+*it,pPub);
+			SaveFImage(tarpath+"\\"+*it,pPub);
+
+			nProcessedFiles++;
+			g_progress=nProcessedFiles*100/nFiles;
+
 		}
 
 		cvReleaseImage(&pPub);
 		delete []PreservedSpace;
 		return nFiles;
+		
 	}
 
 }
 
-void CPage::Publish(IplImage *pImg, IplImage *pPub)
+void CPage::Publish(IplImage *pImg, IplImage *pPub, const CString &text)
 {
 
-	//Preprocess the photos into required size
-	map<CString,IplImage *>::iterator it;
-	for (it=m_TypeImage.begin();it!=m_TypeImage.end();++it) {
-		
+	//Preprocess the photos into required size and copy to buffer
+	for (map<CString,int>::iterator it=m_TypeNum.begin();it!=m_TypeNum.end();++it) {
 		bool isT=(it->first.Right(1)!="'");
-
+		IplImage *pBuf=g_ImageBuf.Buffer(it->first);
 		CvMat subImg;
 		if (isT) {
-			int phtheight=it->second->width;
-			int phtwidth=it->second->height;
+			int phtheight=pBuf->width;
+			int phtwidth=pBuf->height;
 			int imgwidth=pImg->width;
 			int imgheight=pImg->height;
 			double phtwtoh=((double)phtwidth)/phtheight;
@@ -267,10 +346,10 @@ void CPage::Publish(IplImage *pImg, IplImage *pPub)
 			IplImage *tmp=cvCreateImage(cvSize(phtwidth,phtheight),IPL_DEPTH_8U,3);
 			cvResize(&subImg,tmp);
 			//transpose
-			cvTranspose(tmp,it->second);
+			cvTranspose(tmp,pBuf);
 		}else{
-			int phtwidth=it->second->width;
-			int phtheight=it->second->height;
+			int phtwidth=pBuf->width;
+			int phtheight=pBuf->height;
 			int imgwidth=pImg->width;
 			int imgheight=pImg->height;
 			double phtwtoh=((double)phtwidth)/phtheight;
@@ -285,20 +364,250 @@ void CPage::Publish(IplImage *pImg, IplImage *pPub)
 				cvGetSubRect(pImg,&subImg,cvRect(0,abs(imgheight-height)/2,imgwidth,height));
 			}
 			//resize
-			cvResize(&subImg,it->second);
+			cvResize(&subImg,pBuf);
 		}
 	}
 
+	//Preprocess the Text
+	if (m_pTitle) {
+		TextoutToImage(text,m_pTitle);
+	}
+
+	//publish the photos
 	size_t size=m_photos.size();
 	for (size_t i=0;i<size;++i) {
 		//get the target position
-		CPhoto &photo=m_photos[i];
+		CElement *pElement=m_photos[i];
 		CvMat subPub;
-		cvGetSubRect(pPub,&subPub,photo.GetCvRect());
-		cvCopy(m_TypeImage[photo.GetSize()],&subPub);
+		cvGetSubRect(pPub,&subPub,pElement->GetCvRect());
+		IplImage *pBuf;
+		if (CPhoto *pPht=dynamic_cast<CPhoto*>(pElement)) {
+			pBuf=g_ImageBuf.Buffer(pPht->GetSize());
+		}else{
+			pBuf=m_pTitle;
+		}
+		cvCopy(pBuf,&subPub);
 	}
-	
+
+
+
 }
+
+bool TextoutToImage(const CString &text,IplImage* pImg)
+{
+	CDC DrawingDC;
+	CBitmap DrawingBMP;
+
+	DrawingDC.CreateCompatibleDC(CDC::FromHandle(::GetDC(AfxGetMainWnd()->m_hWnd)));
+	DrawingBMP.CreateCompatibleBitmap(CDC::FromHandle(::GetDC(AfxGetMainWnd()->m_hWnd)),pImg->width,pImg->height);
+	DrawingDC.SelectObject(DrawingBMP);
+
+	CPen pen(PS_SOLID,1,RGB(255,255,255));
+	CPen *pop=DrawingDC.SelectObject(&pen);
+	DrawingDC.Rectangle(0,0,pImg->width,pImg->height);
+	DrawingDC.SelectObject(pop);
+	
+	
+	int w=min(pImg->width/text.GetLength(),pImg->height/2);
+
+	CFont font;
+	font.CreateFont(
+		pImg->height,                        // nHeight
+		w,                         // nWidth
+	   0,                         // nEscapement
+	   0,                         // nOrientation
+	   FW_NORMAL,                 // nWeight
+	   FALSE,                     // bItalic
+	   FALSE,                     // bUnderline
+	   0,                         // cStrikeOut
+	   ANSI_CHARSET,              // nCharSet
+	   OUT_DEFAULT_PRECIS,        // nOutPrecision
+	   CLIP_DEFAULT_PRECIS,       // nClipPrecision
+	   DEFAULT_QUALITY,           // nQuality
+	   DEFAULT_PITCH | FF_SWISS,  // nPitchAndFamily
+	   "宋体");                 // lpszFacename
+	CFont *pof=DrawingDC.SelectObject(&font);
+	//DrawingDC.TextOut(0,0,text,CString::StringLength(text));
+	CRect txtrct(CPoint(0,0),CSize(pImg->width,pImg->height));
+	DrawingDC.DrawText(text,-1,txtrct,DT_LEFT);
+	DrawingDC.SelectObject(pof);
+
+	BITMAP bmp;
+	int j =	DrawingBMP.GetBitmap(&bmp);
+	if (!j) return false;
+
+	switch(bmp.bmBitsPixel){
+		case 16:
+			{
+				BYTE* p=new BYTE[bmp.bmHeight*bmp.bmWidthBytes];
+				DrawingBMP.GetBitmapBits(bmp.bmHeight*bmp.bmWidthBytes,p);
+				char *data=pImg->imageData;
+				for(int y=0;y<bmp.bmHeight;y++){
+					int pt=y*bmp.bmWidthBytes;
+					int pt1=y*pImg->widthStep;
+					for(int x=0;x<bmp.bmWidth;x++){
+						BYTE l=p[pt];
+						BYTE h=p[pt+1];
+						data[pt1+2]=(h>>3)*255/31;
+						data[pt1+1]=(((h&0x07)<<3)|(l>>5))*255/63;
+						data[pt1+0]=(l&0x1f)*255/31;						
+						pt+=2;
+						pt1+=3;
+					}
+				}
+				delete []p;
+			}
+			break;
+		case 24:
+			DrawingBMP.GetBitmapBits(bmp.bmHeight*bmp.bmWidthBytes,pImg->imageData);
+			break;
+		case 32:
+			{
+				BYTE* p=new BYTE[bmp.bmHeight*bmp.bmWidthBytes];
+				DrawingBMP.GetBitmapBits(bmp.bmHeight*bmp.bmWidthBytes,p);
+				char *data=pImg->imageData;
+				for(int y=0;y<bmp.bmHeight;y++){
+					int pt=y*bmp.bmWidthBytes;
+					int pt1=y*pImg->widthStep;
+					for(int x=0;x<bmp.bmWidth;x++){
+						BYTE r=p[pt+2];
+						BYTE g=p[pt+1];
+						BYTE b=p[pt];
+						data[pt1+2]=r;
+						data[pt1+1]=g;
+						data[pt1+0]=b;
+						pt+=4;
+						pt1+=3;
+					}
+				}
+				delete []p;
+			}
+			break;
+		default:
+			return false;
+	}
+				
+	return true;
+
+}
+
+
+void CPage::A4PreView(const CString &srcpath,const CString &tarpath)
+{
+	//A4 210mm×297mm
+	int pagewidth=Cm2Dot(21.0);
+	int pageheight=Cm2Dot(29.7);
+
+	set<CString> Filenames;
+	const int nFiles=GetAllFolderFile(srcpath, "*.jpg", Filenames);
+
+
+	if (!nFiles) {
+		return;
+	}else{
+
+		const int PreservedSize=6*1024*1024*3;
+		set<CString>::iterator it;
+
+
+		void *PreservedSpace=new char[PreservedSize];
+		IplImage *pPub=cvCreateImage(cvSize(pagewidth,pageheight),IPL_DEPTH_8U,3);
+		
+		int photocnt=0;
+		int pagecnt=0;
+
+		int nProcessed=0;
+		for (it=Filenames.begin();!g_sigend && it!=Filenames.end();++it) {
+//		for (it=Filenames.begin();it!=Filenames.end();++it) {
+
+			//set a white page
+			if (photocnt==0) {
+				memset(pPub->imageData,255,pPub->widthStep*pPub->height);
+				pagecnt++;
+			}
+
+			//read the photos
+			IplImage imghead;
+			imghead.imageData=(char *)PreservedSpace;
+
+			int res=LoadImageToBuf(srcpath+"\\"+*it,&imghead,PreservedSize);
+			if( res!=LOAD_SUC)
+			{
+				AfxMessageBox(CString("读取文件\"")+*it+"\"失败,跳过...请在结束后检查该文件");
+				continue;
+			}
+
+			int x=(photocnt%5)*357+375;
+			int y=(photocnt/5)*485+300;
+			
+			//here: preview
+			Make1Photo(&imghead,pPub,x,y,it->Left(it->Find('.')));
+	
+			g_progress=(++nProcessed)*100/nFiles;
+			if (photocnt==29) {
+				CString flnm;
+				flnm.Format("%d.jpg",pagecnt);
+				SaveFImage(tarpath+"\\"+"预览"+flnm,pPub);
+				photocnt=0;
+			} else {
+				photocnt++;
+			}
+		}
+
+		if (photocnt!=0){
+			CString flnm;
+			flnm.Format("%d.jpg",pagecnt);
+			SaveFImage(tarpath+"\\"+"预览"+flnm,pPub);
+			photocnt=0;
+		}
+		cvReleaseImage(&pPub);
+		delete []PreservedSpace;
+		return ;
+		
+	}
+
+}
+
+void CPage::Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &text)
+{
+	double w,h;
+	CPhoto::Size2WH(CString("1'"),w,h);
+	int phtwidth=Cm2Dot(w);
+	int phtheight=Cm2Dot(h);
+
+
+	//do the photo
+	CvMat PubRgn;
+	cvGetSubRect(pPub,&PubRgn,cvRect(x,y,phtwidth,phtheight));
+
+	CvMat subImg;
+	int imgwidth=pImg->width;
+	int imgheight=pImg->height;
+	double phtwtoh=((double)phtwidth)/phtheight;
+	double imgwtoh=((double)imgwidth)/imgheight;
+	if (imgwtoh>phtwtoh) {
+		//crop on width
+		int width=int(imgheight*phtwtoh);
+		cvGetSubRect(pImg,&subImg,cvRect(abs(imgwidth-width)/2,0,width,imgheight));
+	}else{
+		//crop on height
+		int height=int(imgwidth/phtwtoh);
+		cvGetSubRect(pImg,&subImg,cvRect(0,abs(imgheight-height)/2,imgwidth,height));
+	}
+	//resize
+	cvResize(&subImg,&PubRgn);
+
+	//do the Text
+	cvGetSubRect(pPub,&PubRgn,cvRect(x,y+phtheight+1,phtwidth,50));
+	IplImage imghdr;
+	imghdr.width=PubRgn.width;
+	imghdr.height=PubRgn.height;
+	imghdr.widthStep=PubRgn.step;
+	imghdr.imageData=(char*)PubRgn.data.ptr;
+	TextoutToImage(text,&imghdr);
+
+}
+
 
 
 int GetAllFolderFile(const CString &path, const CString &name, set<CString> &files)
@@ -322,3 +631,25 @@ int GetAllFolderFile(const CString &path, const CString &name, set<CString> &fil
 	::FindClose (hFind);
 	return nFileFound;
 }
+
+
+int CountAllFolderFile(const CString &path, const CString &name)
+{
+	int nFileFound=0;
+	HANDLE hFind;
+	WIN32_FIND_DATA fd;
+	CString SearchName=path+"\\*.jpg"; //search all jpg files
+
+	if ((hFind = ::FindFirstFile (SearchName, &fd)) == INVALID_HANDLE_VALUE)
+		return nFileFound;
+	do 
+	{
+		if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) // a file not subdir
+		{
+			nFileFound++;
+		}
+	} while (::FindNextFile (hFind, &fd));
+	::FindClose (hFind);
+	return nFileFound;
+}
+

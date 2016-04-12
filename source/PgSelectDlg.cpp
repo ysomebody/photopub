@@ -13,7 +13,7 @@ using namespace std;
 
 IMPLEMENT_DYNAMIC(CPgSelectDlg, CDialog)
 
-CPgSelectDlg::CPgSelectDlg(CWnd* pParent ,vector<CPage> &pages,bool bCanPreview)
+CPgSelectDlg::CPgSelectDlg(CWnd* pParent ,VecPPage &pages,bool bCanPreview)
 	: CDialog(CPgSelectDlg::IDD, pParent), m_PageSettings(pages)
 	, m_bGenPreview(TRUE), m_bCanPreview(bCanPreview)
 {
@@ -51,7 +51,7 @@ BOOL CPgSelectDlg::OnInitDialog()
 	size_t size=m_PageSettings.size();
 	set<CString> pagetypes;
 	for (size_t i=0;i<size;++i){
-		pagetypes.insert(m_PageSettings[i].m_SizeDiscription);
+		pagetypes.insert(m_PageSettings[i]->m_SizeDiscription);
 	}
 	set<CString>::iterator it;
 	for (it=pagetypes.begin();it!=pagetypes.end();++it){
@@ -62,8 +62,8 @@ BOOL CPgSelectDlg::OnInitDialog()
 	CString pagesize;
 	m_PageSizeList.GetLBText(0,pagesize);
 	for (size_t i=0;i<size;++i){
-		if (m_PageSettings[i].m_SizeDiscription==pagesize) 
-			m_PageList.AddString(m_PageSettings[i].m_PageDiscription);
+		if (m_PageSettings[i]->m_SizeDiscription==pagesize) 
+			m_PageList.AddString(m_PageSettings[i]->m_PageDiscription);
 	}
 	m_PageList.SetCurSel(0);
 
@@ -86,8 +86,8 @@ void CPgSelectDlg::OnCbnSelchangeCombo1()
 	m_PageSizeList.GetLBText(m_PageSizeList.GetCurSel(),pagesize);
 	size_t size=m_PageSettings.size();
 	for (size_t i=0;i<size;++i){
-		if (m_PageSettings[i].m_SizeDiscription==pagesize) 
-			m_PageList.AddString(m_PageSettings[i].m_PageDiscription);
+		if (m_PageSettings[i]->m_SizeDiscription==pagesize) 
+			m_PageList.AddString(m_PageSettings[i]->m_PageDiscription);
 	}
 	m_PageList.SetCurSel(0);
 
@@ -104,7 +104,7 @@ void CPgSelectDlg::OnPaint()
 	GetDlgItem(IDC_PREVIEW)->GetWindowRect(&rct);
 	ScreenToClient(&rct);
 
-	m_pCurrentPageSetting->PreView(&dc,&rct);
+	m_pCurrentPageSetting->PreView(&dc,&rct,20);
 }
 
 
@@ -117,9 +117,9 @@ CPage * CPgSelectDlg::GetCurrentPageSetting(void)
 	
 	size_t size=m_PageSettings.size();
 	for (size_t i=0;i<size;++i){
-		if (m_PageSettings[i].m_SizeDiscription==pagesize
-			&& m_PageSettings[i].m_PageDiscription==pageset	) 
-			return &m_PageSettings[i];
+		if (m_PageSettings[i]->m_SizeDiscription==pagesize
+			&& m_PageSettings[i]->m_PageDiscription==pageset	) 
+			return m_PageSettings[i];
 	}
 
 	return NULL;

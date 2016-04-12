@@ -72,6 +72,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	EnableDocking(CBRS_ALIGN_ANY);
 //	DockControlBar(&m_wndToolBar);
 	SetMenu(NULL);
+
+	this->SetTitle("证件照排版系统 Photo Publishing");
 	return 0;
 }
 
