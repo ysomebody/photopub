@@ -7,7 +7,7 @@
 
 #include "MainFrm.h"
 #include "PhotoPubDoc.h"
-#include "ImgLdrDll\\Imageloader.h"
+#include "ImgLdr\\ImgLdr.h"
 #include "PgSelectDlg.h"
 #include "CustomPageDlg.h"
 #include "SizeDlg.h"
@@ -38,6 +38,7 @@ BEGIN_MESSAGE_MAP(CPhotoPubDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_SELPAGE, &CPhotoPubDoc::OnUpdateSelpage)
 	ON_UPDATE_COMMAND_UI(ID_BATCHPUB, &CPhotoPubDoc::OnUpdateBatchpub)
 	ON_UPDATE_COMMAND_UI(IDC_THUMB, &CPhotoPubDoc::OnUpdateThumb)
+	ON_UPDATE_COMMAND_UI(ID_CSTPAGE, &CPhotoPubDoc::OnUpdateCstpage)
 END_MESSAGE_MAP()
 
 
@@ -68,7 +69,7 @@ CPhotoPubDoc::~CPhotoPubDoc()
 		delete (*it);
 		*it=NULL;
 	}
-	cvReleaseImage(&m_pOpenedImage);
+	ReleaseFImage(&m_pOpenedImage);
 	cvReleaseImage(&m_pPreviewImage);
 	cvReleaseImage(&m_pPublishingImage);
 }
@@ -134,7 +135,7 @@ void CPhotoPubDoc::OnOpenImage()
 										// selected filename
 		m_filename=path.Right(path.GetLength()-path.ReverseFind('\\')-1);
 
-		cvReleaseImage(&m_pOpenedImage);
+		ReleaseFImage(&m_pOpenedImage);
 		cvReleaseImage(&m_pPreviewImage);
 		cvReleaseImage(&m_pPublishingImage);
 		m_pOpenedImage=LoadFImage(path);
@@ -482,6 +483,12 @@ void CPhotoPubDoc::OnUpdateBatchpub(CCmdUI *pCmdUI)
 }
 
 void CPhotoPubDoc::OnUpdateThumb(CCmdUI *pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(!m_bWatching);
+}
+
+void CPhotoPubDoc::OnUpdateCstpage(CCmdUI *pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
 	pCmdUI->Enable(!m_bWatching);

@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "Page.h"
 #include "ProgressDlg.h"
-#include "ImgLdrDll\ImageLoader.h"
+#include "ImgLdr\ImgLdr.h"
 
 
 #define MAX_BUF_SIZE 1024
@@ -171,7 +171,7 @@ bool CPage::SavePage(FILE *&fp)
 		for (VecPElement::iterator ele=m_photos.begin();ele!=m_photos.end();++ele){
 			if (CPhoto *pPhoto=dynamic_cast<CPhoto *>(*ele)) {
 				if (pPhoto->GetSize()==it->first)
-					fprintf_s(fp,"%.1f,%.1f\n",pPhoto->x,pPhoto->y);
+					fprintf_s(fp,"%.2f,%.2f\n",pPhoto->x,pPhoto->y);
 			}
 		}
 	}
@@ -391,7 +391,8 @@ void CPage::Publish(IplImage *pImg, IplImage *pPub, const CString &text)
 			}else{
 				//crop on height
 				int height=int(imgwidth/phtwtoh);
-				cvGetSubRect(pImg,&subImg,cvRect(0,abs(imgheight-height)/2,imgwidth,height));
+				//cvGetSubRect(pImg,&subImg,cvRect(0,abs(imgheight-height)/2,imgwidth,height));
+				cvGetSubRect(pImg,&subImg,cvRect(0,0,imgwidth,height));
 			}
 			//resize
 			IplImage *tmp=cvCreateImage(cvSize(phtwidth,phtheight),IPL_DEPTH_8U,3);
@@ -414,7 +415,8 @@ void CPage::Publish(IplImage *pImg, IplImage *pPub, const CString &text)
 			}else{
 				//crop on height
 				int height=int(imgwidth/phtwtoh);
-				cvGetSubRect(pImg,&subImg,cvRect(0,abs(imgheight-height)/2,imgwidth,height));
+				//cvGetSubRect(pImg,&subImg,cvRect(0,abs(imgheight-height)/2,imgwidth,height));
+				cvGetSubRect(pImg,&subImg,cvRect(0,0,imgwidth,height));
 			}
 			//resize
 			cvResize(&subImg,pBuf);
@@ -688,7 +690,8 @@ void CPage::Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &
 	}else{
 		//crop on height
 		int height=int(imgwidth/phtwtoh);
-		cvGetSubRect(pImg,&subImg,cvRect(0,abs(imgheight-height)/2,imgwidth,height));
+		//cvGetSubRect(pImg,&subImg,cvRect(0,abs(imgheight-height)/2,imgwidth,height));
+		cvGetSubRect(pImg,&subImg,cvRect(0,0,imgwidth,height));
 	}
 	//resize
 	cvResize(&subImg,&PubRgn);

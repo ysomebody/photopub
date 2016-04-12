@@ -76,6 +76,8 @@ public:
 	afx_msg void OnUpdateBatchpub(CCmdUI *pCmdUI);
 public:
 	afx_msg void OnUpdateThumb(CCmdUI *pCmdUI);
+public:
+	afx_msg void OnUpdateCstpage(CCmdUI *pCmdUI);
 };
 
 

@@ -9,7 +9,7 @@
 #include "PhotoPubView.h"
 #include "InputStrDlg.h"
 #include "StringNumber.h"
-#include "ImgLdrDll/ImageLoader.h"
+#include "ImgLdr/ImgLdr.h"
 #include "cv.h"
 
 #ifdef _DEBUG
@@ -276,7 +276,7 @@ void CPhotoPubView::OnTimer(UINT_PTR nIDEvent)
 			int width=clrct.Width();
 			int height=clrct.Height();
 
-			cvReleaseImage(&pDoc->m_pOpenedImage);
+			if (pDoc->m_pOpenedImage) ReleaseFImage(&pDoc->m_pOpenedImage);
 			IplImage *pImg=pDoc->m_pOpenedImage=LoadFImage(m_WatchingPath+"\\"+*it1+".jpg");
 			m_ratio=min(double(width)/pImg->width,double(height)/pImg->height);
 			((CMainFrame*)GetParent())->SetRatio(int(m_ratio*100));
