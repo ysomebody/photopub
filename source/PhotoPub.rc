@@ -31,10 +31,10 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_CAPTION
 CAPTION "选择排版格式"
 FONT 9, "宋体", 400, 0, 0x86
 BEGIN
-    COMBOBOX        IDC_COMBO1,25,21,50,57,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "选择版面尺寸",IDC_STATIC,27,7,49,8
+    COMBOBOX        IDC_COMBO1,19,21,50,57,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "选择版面尺寸",IDC_STATIC,21,7,49,8
     LTEXT           "选择排版样式",IDC_STATIC,139,7,49,8
-    COMBOBOX        IDC_COMBO2,111,21,105,121,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO2,83,21,161,121,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     CONTROL         "",IDC_PREVIEW,"Static",SS_BLACKFRAME,7,46,247,187
     LTEXT           "预览效果",IDC_STATIC,24,43,33,8
     DEFPUSHBUTTON   "取消",IDCANCEL,146,257,50,14
@@ -172,6 +172,16 @@ BEGIN
     PUSHBUTTON      "批量缩略图",IDC_THUMB,6,174,54,39
 END
 
+IDD_InputStrDlg DIALOGEX 0, 0, 123, 67
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "输入。。。"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "确定",IDOK,33,46,50,14
+    LTEXT           "请输入。。。",IDC_TIP,7,14,92,10
+    EDITTEXT        IDC_INP,7,27,109,14,ES_AUTOHSCROLL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -195,6 +205,14 @@ BEGIN
         RIGHTMARGIN, 60
         TOPMARGIN, 7
         BOTTOMMARGIN, 306
+    END
+
+    IDD_InputStrDlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 116
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 60
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -518,8 +536,8 @@ END
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 LANGUAGE 4, 2
 #pragma code_page(936)
-#include "res\PhotoPub.rc2"  // ???§?§? Microsoft Visual C++ ???ì?¨¨??¨???§?§?-|??ì?????ì?¨|??¨?o???
-#include "afxres.rc"         // ???ì?¨¨??¨?o???ì?¨|????ì?¨|??¨?|?t
+#include "res\PhotoPub.rc2"  // ????ì??ì? Microsoft Visual C++ ???¨???§?§???§????ì??ì?-|??¨??????¨???§|???§?o???
+#include "afxres.rc"         // ???¨???§?§???§?o???¨???§|????¨???§|???§?|?t
 #endif
 
 /////////////////////////////////////////////////////////////////////////////

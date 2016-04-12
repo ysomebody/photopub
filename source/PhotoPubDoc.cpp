@@ -11,6 +11,7 @@
 #include "CustomPageDlg.h"
 #include "SizeDlg.h"
 #include "ProgressDlg.h"
+#include "InputStrDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -274,7 +275,6 @@ void CPhotoPubDoc::OnBnClickedBatchPub()
 	if(!SHGetPathFromIDList(pidl, szDir))
 		return ;
 	CString SrcPath(szDir);
-	CString TarPath(SrcPath+"\\排版");
 
 	int n=CountAllFolderFile(SrcPath,"*.jpg");
 	if (!n) {
@@ -282,7 +282,6 @@ void CPhotoPubDoc::OnBnClickedBatchPub()
 		return;
 	}
 
-	// TODO: Add your control notification handler code here
 	CPgSelectDlg dlg(AfxGetApp()->GetMainWnd(),m_PreDefinedPages,m_pOpenedImage!=NULL);
 	if (IDCANCEL==dlg.DoModal()) {
 		return;
@@ -290,7 +289,18 @@ void CPhotoPubDoc::OnBnClickedBatchPub()
 		m_pPageSetting=dlg.m_pCurrentPageSetting;
 	};
 
-	CreateDirectory(TarPath, NULL);
+
+	//CString TarPath(SrcPath+"\\排版");
+	CString TarPath;
+	CInputStrDlg DirDlg(NULL,"目标文件夹名称",
+		m_pPageSetting->m_SizeDiscription+"底板"+m_pPageSetting->m_PageDiscription);
+	do {
+		if (IDCANCEL==DirDlg.DoModal())
+			return;
+		else {
+			TarPath=SrcPath+"\\"+DirDlg.m_input;
+		}
+	} while(CreateDirectory(TarPath, NULL)?false:(true,AfxMessageBox("该文件夹已经存在，请另外指定文件夹名称！")));
 
 	CProgressDlg ProgDlg;
 	ProgDlg.page=m_pPageSetting;
@@ -359,7 +369,6 @@ void CPhotoPubDoc::OnBnClickedThumb()
 	if(!SHGetPathFromIDList(pidl, szDir))
 		return ;
 	CString SrcPath(szDir);
-	CString TarPath(SrcPath+"\\A4缩略图");
 
 	int n=CountAllFolderFile(SrcPath,"*.jpg");
 	if (!n) {
@@ -367,7 +376,17 @@ void CPhotoPubDoc::OnBnClickedThumb()
 		return;
 	}
 
-	CreateDirectory(TarPath, NULL);
+//	CString TarPath(SrcPath+"\\A4缩略图");
+	CString TarPath;
+	CInputStrDlg DirDlg(NULL,"目标文件夹名称",
+		size+"照片A4缩略图");
+	do {
+		if (IDCANCEL==DirDlg.DoModal())
+			return;
+		else {
+			TarPath=SrcPath+"\\"+DirDlg.m_input;
+		}
+	} while(CreateDirectory(TarPath, NULL)?false:(true,AfxMessageBox("该文件夹已经存在，请另外指定文件夹名称！")));
 
 	//CPage::A4PreView(SrcPath,TarPath);
 

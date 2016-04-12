@@ -29,6 +29,8 @@ class CPage
 	//no assignment allowed
 	CPage(const CPage &);
 	CPage &operator=(const CPage &);
+	
+	bool m_bAddTitleEach;
 public:
 	CString m_SizeDiscription;
 	CString m_PageDiscription;

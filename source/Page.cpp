@@ -7,7 +7,7 @@
 #define MAX_BUF_SIZE 1024
 
 CPage::CPage(CString size, VecPElement photos)
-:m_Size(size),m_photos(photos),m_pTitle(NULL)
+:m_Size(size),m_photos(photos),m_pTitle(NULL), m_bAddTitleEach(false)
 {
 
 	//生成页面尺寸、描述
@@ -51,8 +51,8 @@ CPage::CPage(CString size, VecPElement photos)
 		}
 	}
 	if (typenum>1) m_PageDiscription+="混排";
-	if (m_pTitle) m_PageDiscription+="加字";
-
+	if (m_bAddTitleEach) m_PageDiscription+="，照片加字";
+	if (m_pTitle) m_PageDiscription+="，整版加字";
 }
 CPage::~CPage(void)
 {
@@ -121,6 +121,9 @@ bool CPage::LoadPage(FILE *&fp)
 		m_pTitle=NULL;
 	}
 
+	fscanf_s(fp,"%13s",buf,MAX_BUF_SIZE);	//AddTitleEach=
+	fscanf_s(fp,"%d",&m_bAddTitleEach);
+
 	//统计尺寸，生成版面描述
 	int num;
 	for (int i=1;i<=2;++i){
@@ -140,7 +143,8 @@ bool CPage::LoadPage(FILE *&fp)
 		}
 	}
 	if (typenum>1) m_PageDiscription+="混排";
-	if (m_pTitle) m_PageDiscription+="加字";
+	if (m_bAddTitleEach) m_PageDiscription+="，照片加字";
+	if (m_pTitle) m_PageDiscription+="，整版加字";
 
 	return true;
 }
@@ -190,6 +194,7 @@ bool CPage::SavePage(FILE *&fp)
 		fprintf_s(fp,"%.1f,%.1f,%.1f,%.1f\n",x0,y0,x1,y1);
 	}
 
+	fprintf_s(fp,"AddTitleEach=%d\n",m_bAddTitleEach);	//AddTitleEach=
 
 	return true;
 }
@@ -216,6 +221,52 @@ void CPage::PreView(CDC *pDC,CRect *pRect,int FACTOR)
 		pDC->Rectangle(l,t,r,b);
 		if (CPhoto *pPht=dynamic_cast<CPhoto *>(pElement)) {
 			pDC->TextOut(l+1,t+1,pPht->GetSize().Left(1)+"寸");
+			int theight=12;
+			if (m_bAddTitleEach) {
+				if (r-l<b-t) {
+					//pDC->Rectangle(l,b-1,r,b+theight);
+					CFont font;
+					font.CreateFont(
+						theight-2,                        // nHeight
+						0,                         // nWidth
+						0,                         // nEscapement
+						0,                         // nOrientation
+						FW_NORMAL,                 // nWeight
+						FALSE,                     // bItalic
+						FALSE,                     // bUnderline
+						0,                         // cStrikeOut
+						ANSI_CHARSET,              // nCharSet
+						OUT_DEFAULT_PRECIS,        // nOutPrecision
+						CLIP_DEFAULT_PRECIS,       // nClipPrecision
+						DEFAULT_QUALITY,           // nQuality
+						DEFAULT_PITCH | FF_SWISS,  // nPitchAndFamily
+						"宋体");                 // lpszFacename
+					CFont *pof=pDC->SelectObject(&font);
+					pDC->TextOut(l+1,b,"显示文件名");
+					pDC->SelectObject(pof);							
+				}else{
+					//pDC->Rectangle(r-1,t,r+theight,b);
+					CFont font;
+					font.CreateFont(
+						theight-2,                 // nHeight
+						0,                         // nWidth
+						900,                         // nEscapement
+						900,                         // nOrientation
+						FW_NORMAL,                 // nWeight
+						FALSE,                     // bItalic
+						FALSE,                     // bUnderline
+						0,                         // cStrikeOut
+						ANSI_CHARSET,              // nCharSet
+						OUT_DEFAULT_PRECIS,        // nOutPrecision
+						CLIP_DEFAULT_PRECIS,       // nClipPrecision
+						DEFAULT_QUALITY,           // nQuality
+						DEFAULT_PITCH | FF_SWISS,  // nPitchAndFamily
+						"宋体");                 // lpszFacename
+					CFont *pof=pDC->SelectObject(&font);
+					pDC->TextOut(r,b-1,"显示文件名");
+					pDC->SelectObject(pof);					}
+
+			}
 		}else if(CText *pTxt=dynamic_cast<CText *>(pElement)){
 			CFont font;
 			font.CreateFont(
@@ -234,7 +285,7 @@ void CPage::PreView(CDC *pDC,CRect *pRect,int FACTOR)
 			   DEFAULT_PITCH | FF_SWISS,  // nPitchAndFamily
 			   "宋体");                 // lpszFacename
 			CFont *pof=pDC->SelectObject(&font);
-			pDC->TextOut(l+1,t+1,"（显示标题文字）");
+			pDC->TextOut(l+1,t+1,"（显示文件名）");
 			pDC->SelectObject(pof);			
 		}
 	}
@@ -348,6 +399,7 @@ void CPage::Publish(IplImage *pImg, IplImage *pPub, const CString &text)
 			//transpose + flip = rot90
 			cvTranspose(tmp,pBuf);
 			cvFlip(pBuf);
+			cvReleaseImage(&tmp);
 		}else{
 			int phtwidth=pBuf->width;
 			int phtheight=pBuf->height;
@@ -367,6 +419,16 @@ void CPage::Publish(IplImage *pImg, IplImage *pPub, const CString &text)
 			//resize
 			cvResize(&subImg,pBuf);
 		}
+		IplImage *pBufT=g_ImageBuf.Buffer(it->first+"T");
+		if (!isT) {
+			TextoutToImage(text,pBufT);
+		}else{
+			IplImage *tmp=cvCreateImage(cvSize(pBufT->height,pBufT->width),IPL_DEPTH_8U,3);
+			TextoutToImage(text,tmp);
+			cvTranspose(tmp,pBufT);
+			cvReleaseImage(&tmp);
+			cvFlip(pBufT);
+		}
 	}
 
 	//Preprocess the Text
@@ -380,14 +442,27 @@ void CPage::Publish(IplImage *pImg, IplImage *pPub, const CString &text)
 		//get the target position
 		CElement *pElement=m_photos[i];
 		CvMat subPub;
-		cvGetSubRect(pPub,&subPub,pElement->GetCvRect());
-		IplImage *pBuf;
+		CvRect rct=pElement->GetCvRect();
+		cvGetSubRect(pPub,&subPub,rct);
+		IplImage *pBuf, *pBufT;
 		if (CPhoto *pPht=dynamic_cast<CPhoto*>(pElement)) {
 			pBuf=g_ImageBuf.Buffer(pPht->GetSize());
+			cvCopy(pBuf,&subPub);
+			//each title
+			if (m_bAddTitleEach)//!m_pTitle) 
+			{
+				CString sizetext=pPht->GetSize()+"T";
+				pBufT=g_ImageBuf.Buffer(sizetext);
+				if (sizetext[1]=='\'')
+					cvGetSubRect(pPub,&subPub,cvRect(rct.x,rct.y+rct.height,rct.width,pBufT->height));
+				else
+					cvGetSubRect(pPub,&subPub,cvRect(rct.x+rct.width,rct.y,pBufT->width,rct.height));
+				cvCopy(pBufT,&subPub);	
+			}
 		}else{
 			pBuf=m_pTitle;
+			cvCopy(pBuf,&subPub);
 		}
-		cvCopy(pBuf,&subPub);
 	}
 
 
