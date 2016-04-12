@@ -507,7 +507,7 @@ bool TextoutToImage(const CString &text,IplImage* pImg)
 	CFont *pof=DrawingDC.SelectObject(&font);
 	//DrawingDC.TextOut(0,0,text,CString::StringLength(text));
 	CRect txtrct(CPoint(0,0),CSize(pImg->width,pImg->height));
-	DrawingDC.DrawText(text,-1,txtrct,DT_LEFT);
+	DrawingDC.DrawText(text,-1,txtrct,DT_CENTER);
 	DrawingDC.SelectObject(pof);
 
 	BITMAP bmp;
@@ -573,32 +573,57 @@ bool TextoutToImage(const CString &text,IplImage* pImg)
 void CPage::A4PreView(const CString &srcpath,const CString &tarpath, const CString &size)
 {
 	//A4 210mm°¡297mm
+	//10*12 in ==> 203 °¡ 305 mm
+	// for compact reason ==> 210 * 316
 	int pagewidth=Cm2Dot(21.0);
-	int pageheight=Cm2Dot(29.7);
+	int pageheight=Cm2Dot(31.6);
+	double w,h;
+	CPhoto::Size2WH(size+"'",w,h);
+	const int photow=Cm2Dot(w);
+	const int photoh=Cm2Dot(h);
 
-	int nCol;
-	int nRow;
-	int LeftMargin,RightMargin;
-	int TopMargin,BottomMargin;
-	int singleWidth,singleHeight;
+	int x,y;
+	int LeftMargin=0;
+	int HSpace = 0;
+	int VSpace = 0;
+	int TopMargin=0;
+	int TextHeight=0;
+	int PNHeight=0;
+	int TitleHeight=0;
 
 	if (size=="1"){
-		nCol=5;
-		nRow=6;
-		LeftMargin=RightMargin=375;
-		TopMargin=BottomMargin=300;
+		LeftMargin = 5;
+		TopMargin = 7;
+		HSpace = 2;
+		VSpace = 0;
+		TextHeight = 35;
+		PNHeight = 45;
+		TitleHeight=photoh/2;
 	}else if (size=="2"){
-		nCol=5;
-		nRow=5;
-		LeftMargin=RightMargin=100;
-		TopMargin=BottomMargin=50;
+		LeftMargin = 125;
+		TopMargin = 150;
+		HSpace = 20;
+		VSpace = 10;
+		TextHeight = 50;
+		PNHeight = 45;
+		TitleHeight=photoh/5;
 	}
-	singleWidth=(pagewidth-LeftMargin-RightMargin)/nCol;
-	singleHeight=(pageheight-TopMargin-BottomMargin)/nRow;
+
+	int lastSlashPos = 0;
+	while(1) 
+	{
+		int pos = srcpath.Find('\\',lastSlashPos+1);
+		if (pos<0)
+			break;
+		else
+			lastSlashPos = pos;
+	}
+
+	CString FolderName = srcpath.Right(srcpath.GetLength()-lastSlashPos-1);
+
 
 	set<CString> Filenames;
 	const int nFiles=GetAllFolderFile(srcpath, "*.jpg", Filenames);
-
 
 	if (!nFiles) {
 		return;
@@ -614,17 +639,34 @@ void CPage::A4PreView(const CString &srcpath,const CString &tarpath, const CStri
 		IplImage imghead;
 		imghead.imageData=(char *)PreservedSpace;
 
-		
-		int photocnt=0;
-		int pagecnt=0;
-
 		int nProcessed=0;
+		int pagecnt = 0;
+
+		x=LeftMargin,y=TopMargin;
+		
+		bool bNewPage = true;
+		memset(pPub->imageData,255,pPub->widthStep*pPub->height);
+		pagecnt++;
+		bNewPage = false;
+
+		//add folder title
+		CvMat PubRgn;
+		cvGetSubRect(pPub,&PubRgn,cvRect(x,10+3*TitleHeight/5,pagewidth-2*LeftMargin,photoh/4));
+		IplImage imghdr;
+		imghdr.width=PubRgn.width;
+		imghdr.height=PubRgn.height;
+		imghdr.widthStep=PubRgn.step;
+		imghdr.imageData=(char*)PubRgn.data.ptr;
+		TextoutToImage(FolderName,&imghdr);
+		y += TitleHeight*5/4;
+
 		for (it=Filenames.begin();!g_sigend && it!=Filenames.end();++it) {
 
 			//set a white page
-			if (photocnt==0) {
+			if (bNewPage) {
 				memset(pPub->imageData,255,pPub->widthStep*pPub->height);
 				pagecnt++;
+				bNewPage = false;
 			}
 
 			//read the photos
@@ -635,29 +677,61 @@ void CPage::A4PreView(const CString &srcpath,const CString &tarpath, const CStri
 				continue;
 			}
 
-			int x=(photocnt%nCol)*singleWidth+LeftMargin;
-			int y=(photocnt/nCol)*singleHeight+TopMargin;
 			
 			//here: preview
-			Make1Photo(&imghead,pPub,x,y,size,*it);
+			Make1Photo(&imghead,pPub,x,y,size,*it,TextHeight);
+
+			//move to next photo point
+			x = x + photow + HSpace ;
+			if (x + photow >= pagewidth){
+				x = LeftMargin;
+				y = y +photoh + VSpace + TextHeight;
+				if (y + photoh >= pageheight-PNHeight){
+					//add page number
+					CvMat PubRgn;
+					cvGetSubRect(pPub,&PubRgn,cvRect(LeftMargin,pageheight-PNHeight-1,pagewidth-2*LeftMargin,PNHeight));
+					IplImage imghdr;
+					imghdr.width=PubRgn.width;
+					imghdr.height=PubRgn.height;
+					imghdr.widthStep=PubRgn.step;
+					imghdr.imageData=(char*)PubRgn.data.ptr;
+					char buf[20];
+					sprintf(buf,"--- %d ---",pagecnt);
+					TextoutToImage(buf,&imghdr);
+
+					//save page
+					CString flnm;
+					flnm.Format("%d.jpg",pagecnt);
+					SaveFImage(tarpath+"\\"+"‘§¿¿"+flnm,pPub);
+					y = TopMargin;
+
+					bNewPage = true;
+				}
+			}
 	
 			g_progress=(++nProcessed)*100/nFiles;
-			if (photocnt==nCol*nRow-1) {
-				CString flnm;
-				flnm.Format("%d.jpg",pagecnt);
-				SaveFImage(tarpath+"\\"+"‘§¿¿"+flnm,pPub);
-				photocnt=0;
-			} else {
-				photocnt++;
-			}
 		}
 
-		if (photocnt!=0){
+		if (!bNewPage)
+		{
+			//add page number
+			CvMat PubRgn;
+			cvGetSubRect(pPub,&PubRgn,cvRect(LeftMargin,pageheight-PNHeight-1,pagewidth-2*LeftMargin,PNHeight));
+			IplImage imghdr;
+			imghdr.width=PubRgn.width;
+			imghdr.height=PubRgn.height;
+			imghdr.widthStep=PubRgn.step;
+			imghdr.imageData=(char*)PubRgn.data.ptr;
+			char buf[20];
+			sprintf(buf,"--- %d ---",pagecnt);
+			TextoutToImage(buf,&imghdr);
+
+			//save page
 			CString flnm;
 			flnm.Format("%d.jpg",pagecnt);
 			SaveFImage(tarpath+"\\"+"‘§¿¿"+flnm,pPub);
-			photocnt=0;
 		}
+
 		cvReleaseImage(&pPub);
 		delete []PreservedSpace;
 		return ;
@@ -666,7 +740,7 @@ void CPage::A4PreView(const CString &srcpath,const CString &tarpath, const CStri
 
 }
 
-void CPage::Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &size,const CString &text)
+void CPage::Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &size,const CString &text, int textheight)
 {
 	double w,h;
 	CPhoto::Size2WH(size+"'",w,h);
@@ -697,7 +771,7 @@ void CPage::Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &
 	cvResize(&subImg,&PubRgn);
 
 	//do the Text
-	cvGetSubRect(pPub,&PubRgn,cvRect(x,y+phtheight+1,phtwidth,50));
+	cvGetSubRect(pPub,&PubRgn,cvRect(x,y+phtheight+1,phtwidth,textheight));
 	IplImage imghdr;
 	imghdr.width=PubRgn.width;
 	imghdr.height=PubRgn.height;
@@ -714,7 +788,7 @@ int GetAllFolderFile(const CString &path, const CString &name, set<CString> &fil
 	int nFileFound=0;
 	HANDLE hFind;
 	WIN32_FIND_DATA fd;
-	CString SearchName=path+"\\*.jpg"; //search all jpg files
+	CString SearchName=path+"\\"+name; //search all jpg files
 
 	if ((hFind = ::FindFirstFile (SearchName, &fd)) == INVALID_HANDLE_VALUE)
 		return nFileFound;
@@ -731,13 +805,55 @@ int GetAllFolderFile(const CString &path, const CString &name, set<CString> &fil
 	return nFileFound;
 }
 
+int GetAllSubFolderFiles(const CString &path, const CString &name, map<CString,set<CString>> &folderFiles)
+{
+	HANDLE hFind;
+	WIN32_FIND_DATA fd;
+	CString SearchFolderName=path+"\\*.*"; //search all jpg files
+	int nFiles=0;
+
+	if ((hFind = ::FindFirstFile (SearchFolderName, &fd)) == INVALID_HANDLE_VALUE)
+		return nFiles;
+	do 
+	{
+		if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) // find a subdir
+		{
+			CString folder(fd.cFileName);
+			if (folder=="." || folder==".." ||folder.Find("Àı¬‘Õº")!=-1)
+				continue;
+			CString SearchName=path+"\\"+folder+"\\"+name;
+			int nFileFound=0;
+			HANDLE hFileFind;
+			if ((hFileFind = ::FindFirstFile (SearchName, &fd)) == INVALID_HANDLE_VALUE)
+				continue;
+			do 
+			{
+				if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) // a file not subdir
+				{
+					nFileFound++;
+					CString fn(fd.cFileName);
+					folderFiles[folder].insert(fn.Left(fn.Find('.')));
+				}
+				if (!nFileFound)
+				{
+					folderFiles.erase(folder);
+				}
+			} while (::FindNextFile (hFileFind, &fd));
+			nFiles+=nFileFound;
+			::FindClose(hFileFind);
+		}
+	} while (::FindNextFile (hFind, &fd));
+	::FindClose (hFind);
+	return nFiles;
+}
+
 
 int CountAllFolderFile(const CString &path, const CString &name)
 {
 	int nFileFound=0;
 	HANDLE hFind;
 	WIN32_FIND_DATA fd;
-	CString SearchName=path+"\\*.jpg"; //search all jpg files
+	CString SearchName=path+"\\"+name; //search all jpg files
 
 	if ((hFind = ::FindFirstFile (SearchName, &fd)) == INVALID_HANDLE_VALUE)
 		return nFileFound;
@@ -752,3 +868,185 @@ int CountAllFolderFile(const CString &path, const CString &name)
 	return nFileFound;
 }
 
+
+void CPage::MultiA4PreView(const CString &srcpath,const CString &tarpath, const CString &size)
+{
+	//A4 210mm°¡297mm
+	//10*12 in ==> 203 °¡ 305 mm
+	// for compact reason ==> 210 * 316
+	int pagewidth=Cm2Dot(21.0);
+	int pageheight=Cm2Dot(31.6);
+	double w,h;
+	CPhoto::Size2WH(size+"'",w,h);
+	const int photow = Cm2Dot(w);
+	const int photoh = Cm2Dot(h);
+
+	int x,y;
+	int LeftMargin=0;
+	int HSpace = 0;
+	int VSpace = 0;
+	int TopMargin=0;
+	int TextHeight=0;
+	int PNHeight=0;
+	int TitleHeight=0;
+
+	if (size=="1"){
+		LeftMargin = 5;
+		TopMargin = 7;
+		HSpace = 2;
+		VSpace = 0;
+		TextHeight = 35;
+		PNHeight = 45;
+		TitleHeight=photoh/2;
+	}else if (size=="2"){
+		LeftMargin = 125;
+		TopMargin = 70;
+		HSpace = 20;
+		VSpace = 10;
+		TextHeight = 50;
+		PNHeight = 45;
+		TitleHeight=photoh/5;
+	}
+	x=LeftMargin,y=TopMargin;
+
+	map<CString, set<CString> > folderFiles;
+	map<CString, set<CString> >::iterator itFolder;
+	int nFiles = GetAllSubFolderFiles(srcpath,"*.jpg",folderFiles);
+	if (!nFiles) return;
+	bool bNewPage=true;
+
+	const int PreservedSize=6*1024*1024*3; //for a 6M photo
+
+	void *PreservedSpace=new char[PreservedSize];
+	IplImage *pPub=cvCreateImage(cvSize(pagewidth,pageheight),IPL_DEPTH_8U,3);
+
+	IplImage imghead;
+	imghead.imageData=(char *)PreservedSpace;
+
+	int pagecnt = 0;
+	int nProcessed = 0;
+
+	for (itFolder=folderFiles.begin();itFolder!=folderFiles.end();++itFolder) {
+		if (x!=LeftMargin) 
+		{
+			x = LeftMargin;
+			y = y + photoh + VSpace + TextHeight;
+			if (y + TitleHeight >= pageheight-PNHeight){
+				//add page number
+				CvMat PubRgn;
+				cvGetSubRect(pPub,&PubRgn,cvRect(LeftMargin,pageheight-PNHeight-1,pagewidth-2*LeftMargin,PNHeight));
+				IplImage imghdr;
+				imghdr.width=PubRgn.width;
+				imghdr.height=PubRgn.height;
+				imghdr.widthStep=PubRgn.step;
+				imghdr.imageData=(char*)PubRgn.data.ptr;
+				char buf[20];
+				sprintf(buf,"--- %d ---",pagecnt);
+				TextoutToImage(buf,&imghdr);
+
+				//save page
+				CString flnm;
+				flnm.Format("%d.jpg",pagecnt);
+				SaveFImage(tarpath+"\\"+"‘§¿¿"+flnm,pPub);
+				y = TopMargin;
+
+				bNewPage = true;
+			}
+		}
+		if (bNewPage)
+		{
+			x=LeftMargin,y=TopMargin;
+			memset(pPub->imageData,255,pPub->widthStep*pPub->height);
+			pagecnt++;
+			bNewPage = false;
+		}
+		
+		CvMat PubRgn;
+		cvGetSubRect(pPub,&PubRgn,cvRect(x,y+10+3*TitleHeight/5,pagewidth-2*LeftMargin,TitleHeight/2));
+		IplImage imghdr;
+		imghdr.width=PubRgn.width;
+		imghdr.height=PubRgn.height;
+		imghdr.widthStep=PubRgn.step;
+		imghdr.imageData=(char*)PubRgn.data.ptr;
+		TextoutToImage(itFolder->first,&imghdr);
+		y += TitleHeight*5/4;
+
+		set<CString>::iterator it;
+		for (it=itFolder->second.begin();!g_sigend && it!=itFolder->second.end();++it) {
+			if (bNewPage)
+			{
+				x=LeftMargin,y=TopMargin+75;
+				memset(pPub->imageData,255,pPub->widthStep*pPub->height);
+				pagecnt++;
+				bNewPage = false;
+			}
+			//read the photos
+			int res=LoadImageToBuf(srcpath+"\\"+itFolder->first+"\\"+*it+".jpg",&imghead,PreservedSize);
+			if( res!=LOAD_SUC)
+			{
+				AfxMessageBox(CString("∂¡»°Œƒº˛\"")+*it+".jpg\" ß∞‹,Ã¯π˝...«Î‘⁄Ω· ¯∫ÛºÏ≤È∏√Œƒº˛");
+				continue;
+			}
+
+			
+			//here: preview
+			Make1Photo(&imghead,pPub,x,y,size,*it,TextHeight);
+
+			//move to next photo point
+			x = x + photow + HSpace ;
+			if (x + photow >= pagewidth){
+				x = LeftMargin;
+				y = y +photoh + VSpace + TextHeight;
+				if (y + photoh >= pageheight-PNHeight){
+					//add page number
+					CvMat PubRgn;
+					cvGetSubRect(pPub,&PubRgn,cvRect(LeftMargin,pageheight-PNHeight-1,pagewidth-2*LeftMargin,PNHeight));
+					IplImage imghdr;
+					imghdr.width=PubRgn.width;
+					imghdr.height=PubRgn.height;
+					imghdr.widthStep=PubRgn.step;
+					imghdr.imageData=(char*)PubRgn.data.ptr;
+					char buf[20];
+					sprintf(buf,"--- %d ---",pagecnt);
+					TextoutToImage(buf,&imghdr);
+
+					//save page
+					CString flnm;
+					flnm.Format("%d.jpg",pagecnt);
+					SaveFImage(tarpath+"\\"+"‘§¿¿"+flnm,pPub);
+					y = TopMargin;
+
+					bNewPage = true;
+				}
+			}
+
+			g_progress=(++nProcessed)*100/nFiles;
+		}
+
+	}
+
+	if (!bNewPage)
+	{
+		//add page number
+		CvMat PubRgn;
+		cvGetSubRect(pPub,&PubRgn,cvRect(LeftMargin,pageheight-PNHeight-1,pagewidth-2*LeftMargin,PNHeight));
+		IplImage imghdr;
+		imghdr.width=PubRgn.width;
+		imghdr.height=PubRgn.height;
+		imghdr.widthStep=PubRgn.step;
+		imghdr.imageData=(char*)PubRgn.data.ptr;
+		char buf[20];
+		sprintf(buf,"--- %d ---",pagecnt);
+		TextoutToImage(buf,&imghdr);
+
+		//save page
+		CString flnm;
+		flnm.Format("%d.jpg",pagecnt);
+		SaveFImage(tarpath+"\\"+"‘§¿¿"+flnm,pPub);
+	}
+
+	cvReleaseImage(&pPub);
+	delete []PreservedSpace;
+	return ;
+		
+}

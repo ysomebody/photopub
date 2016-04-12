@@ -44,6 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\OpenCV\cv\include&quot;;&quot;C:\Program Files\OpenCV\cxcore\include&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -67,9 +68,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cxcored.lib cvd.lib ImgLdr\ImageLdr.lib"
+				AdditionalDependencies="cxcore.lib cv.lib ImgLdr\ImageLdr.lib"
 				OutputFile="$(SolutionDir)\bin\$(ProjectName)_Debug.exe"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="&quot;C:\Program Files\OpenCV\lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -129,6 +131,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\OpenCV\cv\include&quot;;&quot;C:\Program Files\OpenCV\cxcore\include&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
 				MinimalRebuild="false"
 				RuntimeLibrary="0"
@@ -154,6 +157,7 @@
 				AdditionalDependencies="cxcore.lib cv.lib ImgLdr\ImageLdr.lib"
 				OutputFile="$(SolutionDir)\bin\$(ProjectName).exe"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;C:\Program Files\OpenCV\lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"

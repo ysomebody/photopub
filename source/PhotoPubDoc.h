@@ -78,6 +78,10 @@ public:
 	afx_msg void OnUpdateThumb(CCmdUI *pCmdUI);
 public:
 	afx_msg void OnUpdateCstpage(CCmdUI *pCmdUI);
+public:
+	afx_msg void OnUpdateMultithumb(CCmdUI *pCmdUI);
+public:
+	afx_msg void OnMultithumb();
 };
 
 

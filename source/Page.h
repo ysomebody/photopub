@@ -10,6 +10,7 @@ using namespace std;
 
 int CountAllFolderFile(const CString &path, const CString &name);
 int GetAllFolderFile(const CString &path, const CString &name, set<CString> &files);
+int GetAllSubFolderFiles(const CString &path, const CString &name, map<CString,set<CString>> &folderFiles);
 bool TextoutToImage(const CString &text,IplImage* pImg);
 
 class CPage;
@@ -47,8 +48,9 @@ public:
 
 	static void Size2WH(const CString &size, double &width, double &height);
 	static void A4PreView(const CString &srcpath,const CString &tarpath, const CString &size);
+	static void MultiA4PreView(const CString &srcpath,const CString &tarpath, const CString &size);
 
 private:
 	void Publish(IplImage * pImg, IplImage * pPub, const CString& text);
-	static void Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &size,const CString &text);
+	static void Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &size,const CString &text,int textheight);
 };

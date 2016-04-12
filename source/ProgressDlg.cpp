@@ -117,3 +117,16 @@ UINT A4PreviewThreadProc(LPVOID pParam)
 		pDlg->PostMessage(UM_FINISHED);
 	return 0;
 }
+UINT MultiA4PreviewThreadProc(LPVOID pParam)
+{
+	g_progress=0;
+	g_sigend=false;
+
+	CProgressDlg* pDlg=(CProgressDlg*)pParam;
+
+	CPage::MultiA4PreView(pDlg->srcPath,pDlg->tarPath,pDlg->photosize);
+
+	if (!g_sigend) 
+		pDlg->PostMessage(UM_FINISHED);
+	return 0;
+}

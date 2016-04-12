@@ -8,6 +8,7 @@ extern volatile int g_progress;
 extern volatile bool g_sigend;
 UINT PublishDirThreadProc(LPVOID pParam);
 UINT A4PreviewThreadProc(LPVOID pParam);
+UINT MultiA4PreviewThreadProc(LPVOID pParam);
 
 
 // CProgressDlg dialog

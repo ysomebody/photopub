@@ -25,6 +25,7 @@ IMPLEMENT_DYNCREATE(CPhotoPubDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(CPhotoPubDoc, CDocument)
 	ON_BN_CLICKED(ID_IMAGE_OPEN, &CPhotoPubDoc::OnOpenImage)
+	ON_BN_CLICKED(IDC_MULTITHUMB, &CPhotoPubDoc::OnMultithumb)
 	ON_BN_CLICKED(ID_SELPAGE, &CPhotoPubDoc::OnBnClickedSelpage)
 	ON_BN_CLICKED(ID_PREVIEW, &CPhotoPubDoc::OnBnClickedSavePreview)
 	ON_BN_CLICKED(ID_BATCHPUB, &CPhotoPubDoc::OnBnClickedBatchPub)
@@ -39,6 +40,7 @@ BEGIN_MESSAGE_MAP(CPhotoPubDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_BATCHPUB, &CPhotoPubDoc::OnUpdateBatchpub)
 	ON_UPDATE_COMMAND_UI(IDC_THUMB, &CPhotoPubDoc::OnUpdateThumb)
 	ON_UPDATE_COMMAND_UI(ID_CSTPAGE, &CPhotoPubDoc::OnUpdateCstpage)
+	ON_UPDATE_COMMAND_UI(IDC_MULTITHUMB, &CPhotoPubDoc::OnUpdateMultithumb)
 END_MESSAGE_MAP()
 
 
@@ -351,6 +353,7 @@ void CPhotoPubDoc::OnBnClickedCstpage()
 
 }
 
+
 void CPhotoPubDoc::OnBnClickedThumb()
 {
 	// TODO: Add your control notification handler code here
@@ -415,6 +418,68 @@ void CPhotoPubDoc::OnBnClickedThumb()
 
 }
 
+void CPhotoPubDoc::OnMultithumb()
+{
+	char szDir[MAX_PATH];
+	BROWSEINFO bi;
+	ITEMIDLIST *pidl;
+
+	bi.hwndOwner = NULL;
+	bi.pidlRoot = NULL;
+	bi.pszDisplayName = szDir;
+	bi.lpszTitle = "请选择多个照片文件夹的上层文件夹:";
+	bi.ulFlags = BIF_RETURNONLYFSDIRS;
+	bi.lpfn = NULL;
+	bi.lParam = 0;
+	bi.iImage = 0;
+
+	pidl = SHBrowseForFolder(&bi);
+	if(pidl == NULL)
+		return ;
+	if(!SHGetPathFromIDList(pidl, szDir))
+		return ;
+	CString SrcPath(szDir);
+
+	int n=CountAllFolderFile(SrcPath,"*.jpg");
+	if (n) {
+		AfxMessageBox("主文件夹包含了图片，请重新组织，编入子文件夹。");
+		return;
+	}
+
+	CStringArray sizelist;
+	sizelist.Add("1寸");
+	sizelist.Add("2寸");
+	CSizeDlg sizeDlg(NULL,"预览照片",sizelist);
+	if (IDCANCEL==sizeDlg.DoModal())
+		return;
+	CString size=sizeDlg.m_Size.Left(1);
+
+//	CString TarPath(SrcPath+"\\A4缩略图");
+	CString TarPath;
+	CInputStrDlg DirDlg(NULL,"目标文件夹名称",
+		size+"寸照片A4缩略图");
+	do {
+		if (IDCANCEL==DirDlg.DoModal())
+			return;
+		else {
+			TarPath=SrcPath+"\\"+DirDlg.m_input;
+		}
+	} while(CreateDirectory(TarPath, NULL)?false:(true,AfxMessageBox("该文件夹已经存在，请另外指定文件夹名称！")));
+
+	//CPage::A4PreView(SrcPath,TarPath);
+
+	CProgressDlg ProgDlg;
+	ProgDlg.page=m_pPageSetting;
+	ProgDlg.srcPath=SrcPath;
+	ProgDlg.tarPath=TarPath;
+	ProgDlg.title="生成缩略图";
+	ProgDlg.photosize=size;
+	ProgDlg.pThread =
+		AfxBeginThread(MultiA4PreviewThreadProc, &ProgDlg,
+			           THREAD_PRIORITY_NORMAL);
+	ProgDlg.DoModal();
+
+}
 
 void CPhotoPubDoc::OnBnClickedWatch()
 {
@@ -466,13 +531,13 @@ void CPhotoPubDoc::OnUpdateImageOpen(CCmdUI *pCmdUI)
 void CPhotoPubDoc::OnUpdatePreview(CCmdUI *pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
-	pCmdUI->Enable((bool)m_pPublishingImage && !m_bWatching);
+	pCmdUI->Enable(m_pPublishingImage!=NULL && !m_bWatching);
 }
 
 void CPhotoPubDoc::OnUpdateSelpage(CCmdUI *pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
-	pCmdUI->Enable((bool)m_pOpenedImage && !m_bWatching);
+	pCmdUI->Enable(m_pOpenedImage!=NULL && !m_bWatching);
 }
 
 
@@ -493,3 +558,10 @@ void CPhotoPubDoc::OnUpdateCstpage(CCmdUI *pCmdUI)
 	// TODO: Add your command update UI handler code here
 	pCmdUI->Enable(!m_bWatching);
 }
+
+void CPhotoPubDoc::OnUpdateMultithumb(CCmdUI *pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(!m_bWatching);
+}
+

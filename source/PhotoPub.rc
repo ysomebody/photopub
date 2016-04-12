@@ -148,8 +148,8 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "关于 PhotoPub"
 FONT 9, "宋体", 0, 0, 0x1
 BEGIN
-    ICON            IDR_Home,IDC_STATIC,28,25,20,20
-    LTEXT           "内部测试版0.5",IDC_STATIC,65,27,53,8,SS_NOPREFIX
+    ICON            IDR_Home,IDC_STATIC,28,25,21,21
+    LTEXT           "内部测试版0.6",IDC_STATIC,65,27,53,8,SS_NOPREFIX
     LTEXT           "保留版权 2006",IDC_STATIC,65,37,53,8
     DEFPUSHBUTTON   "确定",IDOK,55,56,50,16,WS_GROUP
     LTEXT           "专业证件照片处理软件",IDC_STATIC,37,7,89,8,SS_NOPREFIX
@@ -237,8 +237,6 @@ IDR_Home                ICON                    "res\\PhotoPub.ico"
 IDR_Home                BITMAP                  "res\\Toolbar.bmp"
 IDB_NORMAL              BITMAP                  "res\\Normal.bmp"
 IDB_DISABLE             BITMAP                  "res\\Disabled.bmp"
-IDB_DISABLEL            BITMAP                  "res\\DisabledL.bmp"
-IDB_NORMALL             BITMAP                  "res\\NormalL.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -255,6 +253,7 @@ BEGIN
     BUTTON      ID_CSTPAGE
     SEPARATOR
     BUTTON      IDC_THUMB
+    BUTTON      IDC_MULTITHUMB
     SEPARATOR
     BUTTON      IDC_WATCH
     BUTTON      ID_STOP
@@ -285,9 +284,12 @@ BEGIN
         MENUITEM "排版当前照片...",                   ID_SELPAGE
         MENUITEM "排版文件夹照片...",                  ID_BATCHPUB
         MENUITEM SEPARATOR
-        MENUITEM "生成文件夹缩略图...",                 IDC_THUMB
-        MENUITEM SEPARATOR
         MENUITEM "自定义版面...",                    ID_CSTPAGE
+    END
+    POPUP "缩略图"
+    BEGIN
+        MENUITEM "生成文件夹缩略图...",                 IDC_THUMB
+        MENUITEM "生成多文件夹缩略图...",                IDC_MULTITHUMB
     END
     POPUP "拍摄同步(&W)"
     BEGIN
@@ -338,8 +340,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,5,0,0
- PRODUCTVERSION 0,5,0,0
+ FILEVERSION 0,6,0,0
+ PRODUCTVERSION 0,6,0,0
  FILEFLAGSMASK 0x1fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -355,12 +357,12 @@ BEGIN
         BLOCK "080403a8"
         BEGIN
             VALUE "FileDescription", "证件照排版专用软件"
-            VALUE "FileVersion", "0.5"
+            VALUE "FileVersion", "0.6"
             VALUE "InternalName", "PhotoPub"
             VALUE "LegalCopyright", "Copyright Reserved. (Ying Yiting)"
             VALUE "OriginalFilename", "PhotoPub.exe"
             VALUE "ProductName", "PhotoPub"
-            VALUE "ProductVersion", "0.5"
+            VALUE "ProductVersion", "0.6"
         END
     END
     BLOCK "VarFileInfo"
@@ -495,7 +497,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDC_THUMB               "生成预览图\n生成A4纸预览"
+    IDC_THUMB               "生成单个文件夹缩略图\n生成单个文件夹A4纸缩略图"
     IDC_WATCH               "监视正在拍摄的文件夹\n监视文件夹"
 END
 
@@ -503,6 +505,13 @@ STRINGTABLE
 BEGIN
     IDC_BUTTON1             "缩小视图\n缩小"
     IDC_BUTTON2             "放大视图\n放大"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_32791                "生成单个文件夹缩略图\n生成单个文件夹A4纸缩略图"
+    IDC_MULTITHUMB          "生成个多个文件夹缩略图\n生成多个文件夹A4纸缩略图"
+    ID_MULTITHUMB           "生成个多个文件夹缩略图\n生成多个文件夹A4纸缩略图"
 END
 
 #endif    // Chinese (P.R.C.) resources

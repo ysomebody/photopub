@@ -3,6 +3,8 @@
 // 特定于项目的包含文件
 
 #pragma once
+#pragma warning(disable:4996)
+#pragma warning(disable:4819)
 
 #ifndef _SECURE_ATL
 #define _SECURE_ATL 1
