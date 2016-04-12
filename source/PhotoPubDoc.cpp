@@ -14,6 +14,7 @@
 #include "ProgressDlg.h"
 #include "InputStrDlg.h"
 #include "PhotoPubView.h"
+#include "readxls.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -41,6 +42,8 @@ BEGIN_MESSAGE_MAP(CPhotoPubDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(IDC_THUMB, &CPhotoPubDoc::OnUpdateThumb)
 	ON_UPDATE_COMMAND_UI(ID_CSTPAGE, &CPhotoPubDoc::OnUpdateCstpage)
 	ON_UPDATE_COMMAND_UI(IDC_MULTITHUMB, &CPhotoPubDoc::OnUpdateMultithumb)
+	ON_UPDATE_COMMAND_UI(IDC_NAMETRANS, &CPhotoPubDoc::OnUpdateNametrans)
+	ON_COMMAND(IDC_NAMETRANS, &CPhotoPubDoc::OnNametrans)
 END_MESSAGE_MAP()
 
 
@@ -481,6 +484,55 @@ void CPhotoPubDoc::OnMultithumb()
 
 }
 
+void CPhotoPubDoc::OnNametrans()
+{
+	char szDir[MAX_PATH];
+	BROWSEINFO bi;
+	ITEMIDLIST *pidl;
+
+	bi.hwndOwner = NULL;
+	bi.pidlRoot = NULL;
+	bi.pszDisplayName = szDir;
+	bi.lpszTitle = "请选择照片所在的文件夹:";
+	bi.ulFlags = BIF_RETURNONLYFSDIRS;
+	bi.lpfn = NULL;
+	bi.lParam = 0;
+	bi.iImage = 0;
+
+	pidl = SHBrowseForFolder(&bi);
+	if(pidl == NULL)
+		return ;
+	if(!SHGetPathFromIDList(pidl, szDir))
+		return ;
+	CString SrcPath(szDir);
+	SrcPath += '\\';
+
+	int n=CountAllFolderFile(SrcPath,"*.jpg");
+	if (!n) {
+		AfxMessageBox("该文件夹中没有JPG文件！");
+		return;
+	}
+
+	CFileDialog dlg(TRUE, "*.jpg","",\
+	OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_HIDEREADONLY,\
+	"Excel格式(*.xls) |*.xls|All Files (*.*)|*.*||",NULL);
+
+	char title[]= {"打开包含学号和姓名的Excel文件"};
+	dlg.m_ofn.lpstrTitle= title;
+	if (dlg.DoModal() == IDOK) 
+	{
+		CString excel= dlg.GetPathName(); // contain the selected filename
+
+		RenameDirectory(SrcPath,excel);
+
+	}
+
+
+
+
+}
+
+
 void CPhotoPubDoc::OnBnClickedWatch()
 {
 	char szDir[MAX_PATH];
@@ -560,6 +612,13 @@ void CPhotoPubDoc::OnUpdateCstpage(CCmdUI *pCmdUI)
 }
 
 void CPhotoPubDoc::OnUpdateMultithumb(CCmdUI *pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(!m_bWatching);
+}
+
+
+void CPhotoPubDoc::OnUpdateNametrans(CCmdUI *pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
 	pCmdUI->Enable(!m_bWatching);

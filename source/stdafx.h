@@ -52,11 +52,8 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 
-
-
-
-
-
+#include <afxdb.h>        // ODBC
+#include <odbcinst.h>
 
 
 

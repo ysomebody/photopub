@@ -82,6 +82,10 @@ public:
 	afx_msg void OnUpdateMultithumb(CCmdUI *pCmdUI);
 public:
 	afx_msg void OnMultithumb();
+public:
+	afx_msg void OnUpdateNametrans(CCmdUI *pCmdUI);
+public:
+	afx_msg void OnNametrans();
 };
 
 

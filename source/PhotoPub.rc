@@ -255,6 +255,8 @@ BEGIN
     BUTTON      IDC_THUMB
     BUTTON      IDC_MULTITHUMB
     SEPARATOR
+    BUTTON      IDC_NAMETRANS
+    SEPARATOR
     BUTTON      IDC_WATCH
     BUTTON      ID_STOP
     SEPARATOR
@@ -286,10 +288,14 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "自定义版面...",                    ID_CSTPAGE
     END
-    POPUP "缩略图"
+    POPUP "缩略图(&T)"
     BEGIN
         MENUITEM "生成文件夹缩略图...",                 IDC_THUMB
         MENUITEM "生成多文件夹缩略图...",                IDC_MULTITHUMB
+    END
+    POPUP "文件改名(&R)"
+    BEGIN
+        MENUITEM "根据学号添加姓名...",                 IDC_NAMETRANS
     END
     POPUP "拍摄同步(&W)"
     BEGIN
@@ -512,6 +518,8 @@ BEGIN
     ID_32791                "生成单个文件夹缩略图\n生成单个文件夹A4纸缩略图"
     IDC_MULTITHUMB          "生成个多个文件夹缩略图\n生成多个文件夹A4纸缩略图"
     ID_MULTITHUMB           "生成个多个文件夹缩略图\n生成多个文件夹A4纸缩略图"
+    ID_NAMETRANS            "根据学号添加姓名\n学号添加姓名"
+    IDC_NAMETRANS           "根据学号添加姓名\n学号添加姓名"
 END
 
 #endif    // Chinese (P.R.C.) resources

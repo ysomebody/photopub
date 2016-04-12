@@ -244,6 +244,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Readxls.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource.h"
 				>
 			</File>
@@ -307,6 +311,10 @@
 			</File>
 			<File
 				RelativePath=".\ProgressDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Readxls.cpp"
 				>
 			</File>
 			<File
