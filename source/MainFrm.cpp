@@ -22,6 +22,8 @@ END_MESSAGE_MAP()
 static UINT indicators[] =
 {
 	ID_SEPARATOR,           // 状态行指示器
+	ID_IND_WATCHING,
+	ID_IND_SCALE,
 	ID_INDICATOR_CAPS,
 	ID_INDICATOR_NUM,
 	ID_INDICATOR_SCRL,
@@ -44,20 +46,22 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
-	
-/*	if (!m_wndToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP
+	if (!m_wndToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP
 		| CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
 		!m_wndToolBar.LoadToolBar(IDR_MAINFRAME))
 	{
 		TRACE0("未能创建工具栏\n");
 		return -1;      // 未能创建
 	}
-*/
-	if (!m_dlgMenu.Create(this,IDD_MENUBAR,CBRS_LEFT,IDD_MENUBAR)) {
+
+	m_wndToolBar.LoadTrueColorToolBar( 16, IDB_NORMAL, IDB_NORMAL, IDB_DISABLE);
+
+
+/*	if (!m_dlgMenu.Create(this,IDD_MENUBAR,CBRS_LEFT,IDD_MENUBAR)) {
 		TRACE0("未能创建对话窗口\n");
 		return -1;      // 未能创建
 	}
-
+*/
 	if (!m_wndStatusBar.Create(this) ||
 		!m_wndStatusBar.SetIndicators(indicators,
 		  sizeof(indicators)/sizeof(UINT)))
@@ -71,9 +75,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 //	m_wndToolBar.EnableDocking(CBRS_ALIGN_ANY);
 	EnableDocking(CBRS_ALIGN_ANY);
 //	DockControlBar(&m_wndToolBar);
-	SetMenu(NULL);
+//	SetMenu(NULL);
 
-	this->SetTitle("证件照排版系统 Photo Publishing");
+	m_wndStatusBar.SetPaneText(1,"",TRUE);
+
+	SetTitle("证件照排版系统 Photo Publishing");
 	return 0;
 }
 

@@ -36,14 +36,16 @@ protected:
 protected:
 	DECLARE_MESSAGE_MAP()
 protected:
-	IplImage *m_pOpenedImage;
 	IplImage *m_pPreviewImage;
 	IplImage *m_pPublishingImage;
 	CString m_filename;
+//	bool m_bWatching;
 public:
+	IplImage *m_pOpenedImage;
 	IplImage * GetImage(void);
 	VecPPage m_PreDefinedPages;
 	CPage *m_pPageSetting;
+	bool m_bWatching;
 public:
 	afx_msg void OnOpenImage();
 	afx_msg void OnBnClickedSelpage();
@@ -58,6 +60,22 @@ protected:
 
 public:
 	afx_msg void OnBnClickedThumb();
+	afx_msg void OnBnClickedWatch();
+public:
+	afx_msg void OnUpdateWatch(CCmdUI *pCmdUI);
+public:
+	afx_msg void OnUpdateStop(CCmdUI *pCmdUI);
+public:
+	afx_msg void OnUpdateImageOpen(CCmdUI *pCmdUI);
+public:
+	afx_msg void OnUpdatePreview(CCmdUI *pCmdUI);
+public:
+	afx_msg void OnUpdateSelpage(CCmdUI *pCmdUI);
+
+public:
+	afx_msg void OnUpdateBatchpub(CCmdUI *pCmdUI);
+public:
+	afx_msg void OnUpdateThumb(CCmdUI *pCmdUI);
 };
 
 

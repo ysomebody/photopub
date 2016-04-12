@@ -343,18 +343,18 @@ int CPage::PublishDir(const CString &srcpath,const CString &tarpath)
 			IplImage imghead;
 			imghead.imageData=(char *)PreservedSpace;
 
-			int res=LoadImageToBuf(srcpath+"\\"+*it,&imghead,PreservedSize);
+			int res=LoadImageToBuf(srcpath+"\\"+*it+".jpg",&imghead,PreservedSize);
 			if( res!=LOAD_SUC)
 			{
-				AfxMessageBox(CString("读取文件")+*it+"失败,跳过...");
+				AfxMessageBox(CString("读取文件")+*it+".jpg失败,跳过...");
 				continue;
 			}
 
 			//here: publish
 			memset(pPub->imageData,255,pPub->widthStep*pPub->height);
-			Publish(&imghead,pPub,it->Left(it->Find('.')));
+			Publish(&imghead,pPub,*it);
 
-			SaveFImage(tarpath+"\\"+*it,pPub);
+			SaveFImage(tarpath+"\\"+*it+".jpg",pPub);
 
 			nProcessedFiles++;
 			g_progress=nProcessedFiles*100/nFiles;
@@ -626,10 +626,10 @@ void CPage::A4PreView(const CString &srcpath,const CString &tarpath, const CStri
 			}
 
 			//read the photos
-			int res=LoadImageToBuf(srcpath+"\\"+*it,&imghead,PreservedSize);
+			int res=LoadImageToBuf(srcpath+"\\"+*it+".jpg",&imghead,PreservedSize);
 			if( res!=LOAD_SUC)
 			{
-				AfxMessageBox(CString("读取文件\"")+*it+"\"失败,跳过...请在结束后检查该文件");
+				AfxMessageBox(CString("读取文件\"")+*it+".jpg\"失败,跳过...请在结束后检查该文件");
 				continue;
 			}
 
@@ -637,7 +637,7 @@ void CPage::A4PreView(const CString &srcpath,const CString &tarpath, const CStri
 			int y=(photocnt/nCol)*singleHeight+TopMargin;
 			
 			//here: preview
-			Make1Photo(&imghead,pPub,x,y,size,it->Left(it->Find('.')));
+			Make1Photo(&imghead,pPub,x,y,size,*it);
 	
 			g_progress=(++nProcessed)*100/nFiles;
 			if (photocnt==nCol*nRow-1) {
@@ -720,8 +720,8 @@ int GetAllFolderFile(const CString &path, const CString &name, set<CString> &fil
 		if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) // a file not subdir
 		{
 			nFileFound++;
-			files.insert(fd.cFileName);
-
+			CString fn(fd.cFileName);
+			files.insert(fn.Left(fn.Find('.')));
 		}
 	} while (::FindNextFile (hFind, &fd));
 	::FindClose (hFind);

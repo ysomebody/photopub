@@ -247,6 +247,14 @@
 				RelativePath=".\stdafx.h"
 				>
 			</File>
+			<File
+				RelativePath=".\StringNumber.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TrueColorToolBar.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Source Files"
@@ -317,6 +325,14 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\StringNumber.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\TrueColorToolBar.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -325,6 +341,22 @@
 			>
 			<File
 				RelativePath=".\res\bitmap1.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\Disabled.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\DisabledL.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\Normal.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\NormalL.bmp"
 				>
 			</File>
 			<File

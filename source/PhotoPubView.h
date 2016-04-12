@@ -4,7 +4,7 @@
 
 #pragma once
 #include "afxwin.h"
-
+#include <set>
 
 class CPhotoPubView : public CScrollView
 {
@@ -39,20 +39,24 @@ protected:
 	BITMAPINFO* m_bmi_buffer;
     BITMAPINFOHEADER* m_bmih_buffer;
 	double m_ratio;
-	
+	CString m_WatchingPath;
+	CString m_InitStr;
 
 // 生成的消息映射函数
 protected:
 	DECLARE_MESSAGE_MAP()
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
-public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-public:
 	afx_msg void OnBnClickedButton1();
-public:
 	afx_msg void OnBnClickedButton2();
+	//afx_msg void OnBnClickedImageOpen();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg void ReleaseWatching();
+
+	set<CString> m_CurFiles;
 public:
-	afx_msg void OnBnClickedImageOpen();
+	bool SetupWatching(const CString& path);
+	void DrawImage(CDC *pDC,IplImage *pImg);
 };
 
 #ifndef _DEBUG  // PhotoPubView.cpp 中的调试版本

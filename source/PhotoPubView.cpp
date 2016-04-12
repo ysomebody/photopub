@@ -7,7 +7,9 @@
 #include "MainFrm.h"
 #include "PhotoPubDoc.h"
 #include "PhotoPubView.h"
-
+#include "InputStrDlg.h"
+#include "StringNumber.h"
+#include "ImgLdrDll/ImageLoader.h"
 #include "cv.h"
 
 #ifdef _DEBUG
@@ -23,12 +25,14 @@ BEGIN_MESSAGE_MAP(CPhotoPubView, CScrollView)
 	ON_WM_ERASEBKGND()
 	ON_BN_CLICKED(IDC_BUTTON1, &CPhotoPubView::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_BUTTON2, &CPhotoPubView::OnBnClickedButton2)
-	ON_BN_CLICKED(ID_IMAGE_OPEN, &CPhotoPubView::OnBnClickedImageOpen)
+	ON_BN_CLICKED(ID_STOP, &CPhotoPubView::ReleaseWatching)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 // CPhotoPubView 构造/析构
 
 CPhotoPubView::CPhotoPubView()
+:m_InitStr("330100198106240000")
 {
 	// TODO: 在此处添加构造代码
     m_bmi_buffer = (BITMAPINFO*)display_buffer;
@@ -49,13 +53,8 @@ BOOL CPhotoPubView::PreCreateWindow(CREATESTRUCT& cs)
 }
 
 // CPhotoPubView 绘制
-
-void CPhotoPubView::OnDraw(CDC* pDC)
+void CPhotoPubView::DrawImage(CDC *pDC,IplImage *pImg)
 {
-
-	// TODO: 在此处为本机数据添加绘制代码
-	CPhotoPubDoc *pDoc=GetDocument();
-	IplImage *pImg=pDoc->GetImage();
 	int wid=0,hi=0;
 
 	CRect ClipBox;
@@ -112,6 +111,17 @@ void CPhotoPubView::OnDraw(CDC* pDC)
 
 	cvReleaseImage(&pTmp);
 
+}
+
+
+void CPhotoPubView::OnDraw(CDC* pDC)
+{
+
+	// TODO: 在此处为本机数据添加绘制代码
+	CPhotoPubDoc *pDoc=GetDocument();
+	IplImage *pImg=pDoc->GetImage();
+
+	DrawImage(pDC,pImg);
 }
 
 void CPhotoPubView::OnInitialUpdate()
@@ -192,7 +202,7 @@ void CPhotoPubView::OnBnClickedButton2()
 	OnUpdate(NULL,NULL,NULL);
 }
 
-void CPhotoPubView::OnBnClickedImageOpen()
+/*void CPhotoPubView::OnBnClickedImageOpen()
 {
 	m_ratio=1;
 	((CMainFrame*)GetParent())->SetRatio(int(m_ratio*100));
@@ -201,4 +211,98 @@ void CPhotoPubView::OnBnClickedImageOpen()
 	pDoc->OnOpenImage();
 	
 	// TODO: Add your control notification handler code here
+}
+*/
+bool CPhotoPubView::SetupWatching(const CString& path)
+{
+	m_CurFiles.clear();
+	const int nFiles=GetAllFolderFile(path, "*.jpg", m_CurFiles);
+	/*if (nFiles!=0) {
+		AfxMessageBox("错误！\n该文件夹中已存在照片！");	
+		return false;
+	}*/
+	m_WatchingPath=path;
+	SetTimer(1,500,NULL);
+	return true;
+}
+void CPhotoPubView::ReleaseWatching()
+{
+	KillTimer(1);
+	CPhotoPubDoc* pDoc = GetDocument();
+	ASSERT_VALID(pDoc);
+	pDoc->m_bWatching=false;
+	
+	((CMainFrame*)GetParentFrame())->SetWatching(false);
+
+}
+void GetNewName(const CString &init,CString &newname)
+{
+	CInputStrDlg dlg(NULL,"照片名",init);
+	dlg.DoModal();
+	newname=dlg.m_input;
+}
+void CPhotoPubView::OnTimer(UINT_PTR nIDEvent)
+{
+	KillTimer(1);
+	CPhotoPubDoc* pDoc = GetDocument();
+	ASSERT_VALID(pDoc);
+
+	// TODO: Add your message handler code here and/or call default
+	int nFiles=m_CurFiles.size();
+	set<CString> CurFiles1;
+	const int nFiles1=GetAllFolderFile(m_WatchingPath, "*.jpg", CurFiles1);
+	if (nFiles==nFiles1) {
+		SetTimer(1,500,NULL);
+		return;
+	}else if (nFiles>nFiles1){
+		AfxMessageBox("同步发生错误，无法恢复，请重新运行！\n");
+		exit(1);
+	}
+	
+	//Here Comes a new Photo
+	//wait transfering
+	Sleep(1000);
+	//process
+	set<CString>::iterator it1;
+	for (it1=CurFiles1.begin();it1!=CurFiles1.end();++it1)
+	{
+		if ( m_CurFiles.find(*it1)==m_CurFiles.end() ) //not exist before
+		{
+			((CMainFrame*)GetParent())->ShowWindow(SW_SHOWMAXIMIZED);
+
+			CClientDC cdc(this);
+			CRect clrct;
+			GetClientRect(&clrct);
+			int width=clrct.Width();
+			int height=clrct.Height();
+
+			cvReleaseImage(&pDoc->m_pOpenedImage);
+			IplImage *pImg=pDoc->m_pOpenedImage=LoadFImage(m_WatchingPath+"\\"+*it1+".jpg");
+			m_ratio=min(double(width)/pImg->width,double(height)/pImg->height);
+			((CMainFrame*)GetParent())->SetRatio(int(m_ratio*100));
+			OnUpdate(NULL,NULL,NULL);
+			DrawImage(&cdc,pImg);
+
+			CString newname;
+			int res;
+			do {
+				GetNewName(m_InitStr,newname);
+				res=rename(m_WatchingPath+"\\"+*it1+".jpg",m_WatchingPath+"\\"+newname+".jpg");
+			}while( 
+				(res==0) ? false : (true,
+					(errno==EEXIST) ? AfxMessageBox("文件名重复！请重试"): (
+						(errno==EINVAL) ? AfxMessageBox("文件名含非法字符！请重试"):AfxMessageBox("未知错误！请重试")
+				) ) );
+			m_CurFiles.insert(newname);
+			m_InitStr=newname;
+			CStringNumber snum(m_InitStr);
+			snum.Increase();
+			snum.ToString(m_InitStr);
+			//break;
+		}
+	}
+	
+	CScrollView::OnTimer(nIDEvent);
+
+	SetTimer(1,500,NULL);
 }

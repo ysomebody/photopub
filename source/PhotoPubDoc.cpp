@@ -5,6 +5,7 @@
 #include <io.h>
 #include "PhotoPub.h"
 
+#include "MainFrm.h"
 #include "PhotoPubDoc.h"
 #include "ImgLdrDll\\Imageloader.h"
 #include "PgSelectDlg.h"
@@ -12,6 +13,7 @@
 #include "SizeDlg.h"
 #include "ProgressDlg.h"
 #include "InputStrDlg.h"
+#include "PhotoPubView.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -28,6 +30,14 @@ BEGIN_MESSAGE_MAP(CPhotoPubDoc, CDocument)
 	ON_BN_CLICKED(ID_BATCHPUB, &CPhotoPubDoc::OnBnClickedBatchPub)
 	ON_BN_CLICKED(ID_CSTPAGE, &CPhotoPubDoc::OnBnClickedCstpage)
 	ON_BN_CLICKED(IDC_THUMB, &CPhotoPubDoc::OnBnClickedThumb)
+	ON_BN_CLICKED(IDC_WATCH, &CPhotoPubDoc::OnBnClickedWatch)
+	ON_UPDATE_COMMAND_UI(IDC_WATCH, &CPhotoPubDoc::OnUpdateWatch)
+	ON_UPDATE_COMMAND_UI(ID_STOP, &CPhotoPubDoc::OnUpdateStop)
+	ON_UPDATE_COMMAND_UI(ID_IMAGE_OPEN, &CPhotoPubDoc::OnUpdateImageOpen)
+	ON_UPDATE_COMMAND_UI(ID_PREVIEW, &CPhotoPubDoc::OnUpdatePreview)
+	ON_UPDATE_COMMAND_UI(ID_SELPAGE, &CPhotoPubDoc::OnUpdateSelpage)
+	ON_UPDATE_COMMAND_UI(ID_BATCHPUB, &CPhotoPubDoc::OnUpdateBatchpub)
+	ON_UPDATE_COMMAND_UI(IDC_THUMB, &CPhotoPubDoc::OnUpdateThumb)
 END_MESSAGE_MAP()
 
 
@@ -36,11 +46,12 @@ END_MESSAGE_MAP()
 #define MAX_BUF_SIZE 1024
 
 CPhotoPubDoc::CPhotoPubDoc()
-: m_pOpenedImage(NULL),
-m_pPreviewImage(NULL),
-m_pPublishingImage(NULL),
-m_pPageSetting(NULL),
-m_Show(ORG)
+: m_pOpenedImage(NULL)
+,m_pPreviewImage(NULL)
+,m_pPublishingImage(NULL)
+,m_pPageSetting(NULL)
+,m_Show(ORG)
+,m_bWatching(false)
 {
 	// TODO: ÔÚ´ËÌí¼ÓÒ»´ÎÐÔ¹¹Ôì´úÂë
 	if (!ReadPreDefPages()) {
@@ -341,14 +352,6 @@ void CPhotoPubDoc::OnBnClickedCstpage()
 
 void CPhotoPubDoc::OnBnClickedThumb()
 {
-	CStringArray sizelist;
-	sizelist.Add("1´ç");
-	sizelist.Add("2´ç");
-	CSizeDlg sizeDlg(NULL,"Ô¤ÀÀÕÕÆ¬",sizelist);
-	if (IDCANCEL==sizeDlg.DoModal())
-		return;
-	CString size=sizeDlg.m_Size.Left(1);
-
 	// TODO: Add your control notification handler code here
 	char szDir[MAX_PATH];
 	BROWSEINFO bi;
@@ -376,10 +379,18 @@ void CPhotoPubDoc::OnBnClickedThumb()
 		return;
 	}
 
+	CStringArray sizelist;
+	sizelist.Add("1´ç");
+	sizelist.Add("2´ç");
+	CSizeDlg sizeDlg(NULL,"Ô¤ÀÀÕÕÆ¬",sizelist);
+	if (IDCANCEL==sizeDlg.DoModal())
+		return;
+	CString size=sizeDlg.m_Size.Left(1);
+
 //	CString TarPath(SrcPath+"\\A4ËõÂÔÍ¼");
 	CString TarPath;
 	CInputStrDlg DirDlg(NULL,"Ä¿±êÎÄ¼þ¼ÐÃû³Æ",
-		size+"ÕÕÆ¬A4ËõÂÔÍ¼");
+		size+"´çÕÕÆ¬A4ËõÂÔÍ¼");
 	do {
 		if (IDCANCEL==DirDlg.DoModal())
 			return;
@@ -401,4 +412,77 @@ void CPhotoPubDoc::OnBnClickedThumb()
 			           THREAD_PRIORITY_NORMAL);
 	ProgDlg.DoModal();
 
+}
+
+
+void CPhotoPubDoc::OnBnClickedWatch()
+{
+	char szDir[MAX_PATH];
+	BROWSEINFO bi;
+	ITEMIDLIST *pidl;
+	bi.hwndOwner = NULL;
+	bi.pidlRoot = NULL;
+	bi.pszDisplayName = szDir;
+	bi.lpszTitle = "ÇëÑ¡ÔñÒª¼àÊÓµÄÎÄ¼þ¼Ð:";
+	bi.ulFlags = BIF_RETURNONLYFSDIRS;
+	bi.lpfn = NULL;
+	bi.lParam = 0;
+	bi.iImage = 0;
+	pidl = SHBrowseForFolder(&bi);
+	if(pidl == NULL)
+		return;
+	if(!SHGetPathFromIDList(pidl, szDir))
+		return;
+	CString SrcPath(szDir);
+
+	POSITION pos=GetFirstViewPosition();
+	CPhotoPubView* pView=(CPhotoPubView*) GetNextView(pos);
+	if (!pView->SetupWatching(SrcPath))
+		return;
+	
+	m_bWatching=true;
+	((CMainFrame *)pView->GetParentFrame())->SetWatching(m_bWatching);
+}
+
+void CPhotoPubDoc::OnUpdateWatch(CCmdUI *pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(!m_bWatching);
+}
+
+void CPhotoPubDoc::OnUpdateStop(CCmdUI *pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(m_bWatching);
+}
+
+void CPhotoPubDoc::OnUpdateImageOpen(CCmdUI *pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(!m_bWatching);
+}
+
+void CPhotoPubDoc::OnUpdatePreview(CCmdUI *pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable((bool)m_pPublishingImage && !m_bWatching);
+}
+
+void CPhotoPubDoc::OnUpdateSelpage(CCmdUI *pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable((bool)m_pOpenedImage && !m_bWatching);
+}
+
+
+void CPhotoPubDoc::OnUpdateBatchpub(CCmdUI *pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(!m_bWatching);
+}
+
+void CPhotoPubDoc::OnUpdateThumb(CCmdUI *pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(!m_bWatching);
 }

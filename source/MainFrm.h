@@ -4,7 +4,7 @@
 
 #pragma once
 #include "afxext.h"
-
+#include "TrueColorToolBar.h"
 
 class CMainFrame : public CFrameWnd
 {
@@ -33,16 +33,25 @@ public:
 
 protected:  // 控件条嵌入成员
 	CStatusBar  m_wndStatusBar;
-	CDialogBar m_dlgMenu;
+	//CDialogBar m_dlgMenu;
+	CTrueColorToolBar m_wndToolBar;
 
 // 生成的消息映射函数
 protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	DECLARE_MESSAGE_MAP()
 public:
-
-	int GetRatio(void){	return m_dlgMenu.GetDlgItemInt(IDC_EDIT1);  }
-	void SetRatio(int val) {m_dlgMenu.SetDlgItemInt(IDC_EDIT1,val);}
+	void SetRatio(int val) 
+	{
+		CString str;
+		str.Format("%d%%",val);
+		m_wndStatusBar.SetPaneText(2,str,TRUE);
+	}
+	void SetWatching(bool bwatch)
+	{
+		if (bwatch) m_wndStatusBar.SetPaneText(1,"正在监视文件夹",TRUE);
+		else m_wndStatusBar.SetPaneText(1,"",TRUE);
+	}
 };
 
 

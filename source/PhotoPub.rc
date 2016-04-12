@@ -143,33 +143,35 @@ LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
+IDD_ABOUTBOX DIALOGEX 0, 0, 164, 79
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "关于 PhotoPub"
 FONT 9, "宋体", 0, 0, 0x1
 BEGIN
-    ICON            IDR_Home,IDC_STATIC,11,17,20,20
-    LTEXT           "PhotoPub 1.0 版",IDC_STATIC,40,10,119,8,SS_NOPREFIX
-    LTEXT           "Copyright (C) 2006",IDC_STATIC,40,25,119,8
-    DEFPUSHBUTTON   "确定",IDOK,178,7,50,16,WS_GROUP
+    ICON            IDR_Home,IDC_STATIC,28,25,21,21
+    LTEXT           "内部测试版0.4",IDC_STATIC,65,27,53,8,SS_NOPREFIX
+    LTEXT           "保留版权 2006",IDC_STATIC,65,37,53,8
+    DEFPUSHBUTTON   "确定",IDOK,55,56,50,16,WS_GROUP
+    LTEXT           "专业证件照片处理软件",IDC_STATIC,37,7,89,8,SS_NOPREFIX
 END
 
-IDD_MENUBAR DIALOGEX 0, 0, 67, 313
+IDD_MENUBAR DIALOGEX 0, 0, 80, 313
 STYLE DS_SETFONT | DS_3DLOOK | DS_FIXEDSYS | WS_CHILD
 EXSTYLE WS_EX_STATICEDGE
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "打开照片",ID_IMAGE_OPEN,6,6,54,38
-    PUSHBUTTON      "排版当前照片",ID_SELPAGE,6,48,54,38
-    PUSHBUTTON      "保存当前照片",ID_PREVIEW,6,90,54,38
-    PUSHBUTTON      "自定义版式",ID_CSTPAGE,7,252,53,16,NOT WS_VISIBLE
-    PUSHBUTTON      "缩小",IDC_BUTTON1,7,268,23,19
-    PUSHBUTTON      "放大",IDC_BUTTON2,37,268,23,19
+    PUSHBUTTON      "打开照片",ID_IMAGE_OPEN,7,7,54,14
+    PUSHBUTTON      "排版当前照片",ID_SELPAGE,7,26,54,15
+    PUSHBUTTON      "保存当前照片",ID_PREVIEW,7,47,54,16
+    PUSHBUTTON      "自定义版式",ID_CSTPAGE,7,252,66,16,NOT WS_VISIBLE
+    PUSHBUTTON      "缩小",IDC_BUTTON1,7,271,23,19
+    PUSHBUTTON      "放大",IDC_BUTTON2,31,271,23,19
     LTEXT           "比例",IDC_STATIC,10,294,17,8
-    LTEXT           "%",IDC_STATIC,47,294,13,8
+    LTEXT           "%",IDC_STATIC,60,294,13,8
     EDITTEXT        IDC_EDIT1,31,294,15,12,ES_READONLY | ES_NUMBER | NOT WS_BORDER,WS_EX_TRANSPARENT | WS_EX_RIGHT
-    PUSHBUTTON      "批量排版",ID_BATCHPUB,6,132,54,38
-    PUSHBUTTON      "批量缩略图",IDC_THUMB,6,174,54,39
+    PUSHBUTTON      "批量排版",ID_BATCHPUB,7,66,54,16
+    PUSHBUTTON      "批量缩略图",IDC_THUMB,7,84,54,15
+    PUSHBUTTON      "监视文件夹",IDC_WATCH,7,101,54,18
 END
 
 IDD_InputStrDlg DIALOGEX 0, 0, 123, 67
@@ -194,15 +196,15 @@ BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 228
+        RIGHTMARGIN, 157
         TOPMARGIN, 7
-        BOTTOMMARGIN, 48
+        BOTTOMMARGIN, 72
     END
 
     IDD_MENUBAR, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 60
+        RIGHTMARGIN, 73
         TOPMARGIN, 7
         BOTTOMMARGIN, 306
     END
@@ -233,6 +235,10 @@ IDR_Home                ICON                    "res\\PhotoPub.ico"
 //
 
 IDR_Home                BITMAP                  "res\\Toolbar.bmp"
+IDB_NORMAL              BITMAP                  "res\\Normal.bmp"
+IDB_DISABLE             BITMAP                  "res\\Disabled.bmp"
+IDB_DISABLEL            BITMAP                  "res\\DisabledL.bmp"
+IDB_NORMALL             BITMAP                  "res\\NormalL.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -241,15 +247,19 @@ IDR_Home                BITMAP                  "res\\Toolbar.bmp"
 
 IDR_Home TOOLBAR  16, 15
 BEGIN
-    BUTTON      ID_FILE_NEW
-    BUTTON      ID_FILE_OPEN
-    BUTTON      ID_FILE_SAVE
+    BUTTON      ID_IMAGE_OPEN
+    BUTTON      ID_PREVIEW
     SEPARATOR
-    BUTTON      ID_EDIT_CUT
-    BUTTON      ID_EDIT_COPY
-    BUTTON      ID_EDIT_PASTE
+    BUTTON      ID_SELPAGE
+    BUTTON      ID_BATCHPUB
+    BUTTON      IDC_THUMB
     SEPARATOR
-    BUTTON      ID_FILE_PRINT
+    BUTTON      IDC_WATCH
+    BUTTON      ID_STOP
+    SEPARATOR
+    BUTTON      IDC_BUTTON2
+    BUTTON      IDC_BUTTON1
+    SEPARATOR
     BUTTON      ID_APP_ABOUT
 END
 
@@ -263,26 +273,28 @@ IDR_Home MENU
 BEGIN
     POPUP "文件(&F)"
     BEGIN
-        MENUITEM "新建(&N)\tCtrl+N",              ID_FILE_NEW
-        MENUITEM "打开(&O)...\tCtrl+O",           ID_IMAGE_OPEN
-        MENUITEM "保存(&S)\tCtrl+S",              ID_FILE_SAVE
-        MENUITEM "另存为(&A)...",                  ID_FILE_SAVE_AS
-        MENUITEM SEPARATOR
-        MENUITEM "最近的文件",                       ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM "打开照片...",                     ID_IMAGE_OPEN
+        MENUITEM "保存排版结果...",                   ID_PREVIEW
         MENUITEM SEPARATOR
         MENUITEM "退出(&X)",                      ID_APP_EXIT
     END
-    POPUP "编辑(&E)"
+    POPUP "排版(&P)"
     BEGIN
-        MENUITEM "撤消(&U)\tCtrl+Z",              ID_EDIT_UNDO
-        MENUITEM SEPARATOR
-        MENUITEM "剪切(&T)\tCtrl+X",              ID_EDIT_CUT
-        MENUITEM "复制(&C)\tCtrl+C",              ID_EDIT_COPY
-        MENUITEM "粘贴(&P)\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "排版当前照片...",                   ID_SELPAGE
+        MENUITEM "排版文件夹照片...",                  ID_BATCHPUB
+        MENUITEM "生成缩略图...",                    IDC_THUMB
     END
-    POPUP "视图(&V)"
+    POPUP "拍摄同步(&W)"
     BEGIN
-        MENUITEM "工具栏(&T)",                     ID_VIEW_TOOLBAR, GRAYED
+        MENUITEM "监视文件夹...",                    IDC_WATCH
+        MENUITEM "停止监视文件夹",                     ID_STOP
+    END
+    POPUP "查看(&V)"
+    BEGIN
+        MENUITEM "放大",                          IDC_BUTTON2
+        MENUITEM "缩小",                          IDC_BUTTON1
+        MENUITEM SEPARATOR
+        MENUITEM "工具栏(&T)",                     ID_VIEW_TOOLBAR
         MENUITEM "状态栏(&S)",                     ID_VIEW_STATUS_BAR
     END
     POPUP "帮助(&H)"
@@ -321,8 +333,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,2,0,0
- PRODUCTVERSION 0,2,0,0
+ FILEVERSION 0,4,0,0
+ PRODUCTVERSION 0,4,0,0
  FILEFLAGSMASK 0x1fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -338,12 +350,12 @@ BEGIN
         BLOCK "080403a8"
         BEGIN
             VALUE "FileDescription", "证件照排版专用软件"
-            VALUE "FileVersion", "0.2"
+            VALUE "FileVersion", "0.4"
             VALUE "InternalName", "PhotoPub"
             VALUE "LegalCopyright", "Copyright Reserved. (Ying Yiting)"
             VALUE "OriginalFilename", "PhotoPub.exe"
             VALUE "ProductName", "PhotoPub"
-            VALUE "ProductVersion", "0.2"
+            VALUE "ProductVersion", "0.4"
         END
     END
     BLOCK "VarFileInfo"
@@ -361,6 +373,8 @@ END
 STRINGTABLE 
 BEGIN
     IDR_MAINFRAME           "PhotoPub\n\nPhotoPub\n\n\nPhotoPub.Document\nPhotoPub.Document"
+    ID_IND_WATCHING         "正在监视文件夹"
+    ID_IND_SCALE            " 100%"
 END
 
 STRINGTABLE 
@@ -372,10 +386,10 @@ END
 STRINGTABLE 
 BEGIN
     ID_INDICATOR_EXT        "EXT"
-    ID_INDICATOR_CAPS       "CAP"
-    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_CAPS       "大写"
+    ID_INDICATOR_NUM        "数字"
     ID_INDICATOR_SCRL       "SCRL"
-    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_OVR        "覆盖"
     ID_INDICATOR_REC        "REC"
 END
 
@@ -461,6 +475,28 @@ STRINGTABLE
 BEGIN
     AFX_IDS_SCRESTORE       "将窗口恢复到正常大小"
     AFX_IDS_SCTASKLIST      "激活任务列表"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_IMAGE_OPEN           "打开照片\n打开"
+    ID_SELPAGE              "排版当前照片\n排版当前照片"
+    ID_PREVIEW              "保存排版结果\n保存排版结果"
+    ID_BATCHPUB             "排版文件夹照片\n对文件夹排版"
+    ID_WATCH                "监视文件夹\n监视文件夹"
+    ID_STOP                 "停止监视文件夹\n停止监视文件夹"
+END
+
+STRINGTABLE 
+BEGIN
+    IDC_THUMB               "生成预览图\n生成A4纸预览"
+    IDC_WATCH               "监视正在拍摄的文件夹\n监视文件夹"
+END
+
+STRINGTABLE 
+BEGIN
+    IDC_BUTTON1             "缩小视图\n缩小"
+    IDC_BUTTON2             "放大视图\n放大"
 END
 
 #endif    // Chinese (P.R.C.) resources
