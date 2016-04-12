@@ -65,10 +65,10 @@ BEGIN
     PUSHBUTTON      "取消",IDCANCEL,130,195,50,14
     CONTROL         "",IDC_PAGESETTING,"Static",SS_BLACKFRAME,7,7,252,174
     LTEXT           "版面设计",IDC_STATIC,13,11,33,8
-    CONTROL         "V1",IDC_V1,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,264,15,34,39
-    CONTROL         "H1",IDC_H1,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE,304,15,34,39
-    CONTROL         "V2",IDC_V2,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE,263,60,34,39
-    CONTROL         "H2",IDC_H2,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE,304,60,34,39
+    CONTROL         "V1",IDC_V1,"Button",BS_AUTORADIOBUTTON | BS_BITMAP | BS_PUSHLIKE | WS_GROUP,263,15,34,39
+    CONTROL         "H1",IDC_H1,"Button",BS_AUTORADIOBUTTON | BS_BITMAP | BS_PUSHLIKE,304,15,34,39
+    CONTROL         "V2",IDC_V2,"Button",BS_AUTORADIOBUTTON | BS_BITMAP | BS_PUSHLIKE,263,60,34,39
+    CONTROL         "H2",IDC_H2,"Button",BS_AUTORADIOBUTTON | BS_BITMAP | BS_PUSHLIKE,304,60,34,39
 END
 
 IDD_PAGESIZE DIALOGEX 0, 0, 125, 66
@@ -137,62 +137,6 @@ END
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 #pragma code_page(936)
 #endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "关于 PhotoPub"
-FONT 9, "宋体", 0, 0, 0x1
-BEGIN
-    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
-    LTEXT           "PhotoPub 1.0 版",IDC_STATIC,40,10,119,8,SS_NOPREFIX
-    LTEXT           "Copyright (C) 2006",IDC_STATIC,40,25,119,8
-    DEFPUSHBUTTON   "确定",IDOK,178,7,50,16,WS_GROUP
-END
-
-IDD_MENUBAR DIALOGEX 0, 0, 67, 211
-STYLE DS_SETFONT | DS_3DLOOK | DS_FIXEDSYS | WS_CHILD
-EXSTYLE WS_EX_STATICEDGE
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    PUSHBUTTON      "打开照片",ID_IMAGE_OPEN,7,7,53,16
-    PUSHBUTTON      "选择版式",ID_SELPAGE,7,31,53,16
-    PUSHBUTTON      "保存排版照片",ID_PREVIEW,7,55,53,16
-    PUSHBUTTON      "批量排版",ID_BATCHPUB,7,78,53,16
-    PUSHBUTTON      "自定义版式",ID_CSTPAGE,7,102,53,16
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
-BEGIN
-    IDD_ABOUTBOX, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 228
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 48
-    END
-
-    IDD_MENUBAR, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 60
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 204
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -293,6 +237,35 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "关于 PhotoPub"
+FONT 9, "宋体", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "PhotoPub 1.0 版",IDC_STATIC,40,10,119,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2006",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "确定",IDOK,178,7,50,16,WS_GROUP
+END
+
+IDD_MENUBAR DIALOGEX 0, 0, 67, 211
+STYLE DS_SETFONT | DS_3DLOOK | DS_FIXEDSYS | WS_CHILD
+EXSTYLE WS_EX_STATICEDGE
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "打开照片",ID_IMAGE_OPEN,7,7,53,16
+    PUSHBUTTON      "选择版式",ID_SELPAGE,7,31,53,16
+    PUSHBUTTON      "保存排版照片",ID_PREVIEW,7,55,53,16
+    PUSHBUTTON      "批量排版",ID_BATCHPUB,7,78,53,16
+    PUSHBUTTON      "自定义版式",ID_CSTPAGE,7,102,53,16
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Version
 //
 
@@ -328,6 +301,33 @@ BEGIN
         VALUE "Translation", 0x804, 936
     END
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+
+    IDD_MENUBAR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 60
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 204
+    END
+END
+#endif    // APSTUDIO_INVOKED
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -453,13 +453,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_BACKGROUND          BITMAP                  "res\\bitmap1.bmp"
-
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -487,14 +480,22 @@ BEGIN
     "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)\r\n"
     "LANGUAGE 4, 2\r\n"
     "#pragma code_page(936)\r\n"
-    "#include ""res\\PhotoPub.rc2""  // ??¨¨? Microsoft Visual C++ ??§?è??ì?¨¨?-|?§????§?é??ìo???\r\n"
-    "#include ""afxres.rc""         // ??§?è??ìo??§?é???§?é??ì|?t\r\n"
+    "#include ""res\\PhotoPub.rc2""  // ·? Microsoft Visual C++ ±à?-μ?×ê?′\r\n"
+    "#include ""afxres.rc""         // ±ê×?×é?t\r\n"
     "#endif\r\n"
     "\0"
 END
 
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BACKGROUND          BITMAP                  "res\\bitmap1.bmp"
+V1U                     BITMAP                  "res\\bmp00001.bmp"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -513,8 +514,8 @@ END
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 LANGUAGE 4, 2
 #pragma code_page(936)
-#include "res\PhotoPub.rc2"  // ??¨¨? Microsoft Visual C++ ??§?è??ì?¨¨?-|?§????§?é??ìo???
-#include "afxres.rc"         // ??§?è??ìo??§?é???§?é??ì|?t
+#include "res\PhotoPub.rc2"  // ·? Microsoft Visual C++ ±à?-μ?×ê?′
+#include "afxres.rc"         // ±ê×?×é?t
 #endif
 
 /////////////////////////////////////////////////////////////////////////////

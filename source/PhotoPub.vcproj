@@ -67,8 +67,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cxcored.lib cvd.lib highguid.lib"
+				AdditionalDependencies="cxcored.lib cvd.lib highguid.lib ImageLoader\libjpeg.lib"
 				LinkIncremental="2"
+				IgnoreDefaultLibraryNames="MSVCRT"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -104,7 +105,7 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			UseOfMFC="1"
-			CharacterSet="1"
+			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -149,7 +150,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cxcore.lib cv.lib highgui.lib"
+				AdditionalDependencies="cxcore.lib cv.lib highgui.lib ImageLoader\libjpeg.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -192,6 +193,14 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\CustomPageDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DirTreeCtrl.h"
+				>
+			</File>
+			<File
 				RelativePath=".\MainFrm.h"
 				>
 			</File>
@@ -224,7 +233,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SizeDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SortStringArray.h"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TreeDialog.h"
 				>
 			</File>
 		</Filter>
@@ -233,6 +254,14 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
+			<File
+				RelativePath=".\CustomPageDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DirTreeCtrl.cpp"
+				>
+			</File>
 			<File
 				RelativePath=".\MainFrm.cpp"
 				>
@@ -262,6 +291,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SizeDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SortStringArray.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -280,6 +317,10 @@
 						UsePrecompiledHeader="1"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\TreeDialog.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
@@ -309,6 +350,42 @@
 			</File>
 			<File
 				RelativePath=".\res\Toolbar.bmp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="ImageLoader"
+			>
+			<File
+				RelativePath=".\ImageLoader\bitstrm.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ImageLoader\bitstrm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ImageLoader\grfmt_bmp.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ImageLoader\grfmt_jpeg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ImageLoader\ImageLoader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ImageLoader\ImageLoader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ImageLoader\misc.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ImageLoader\misc.h"
 				>
 			</File>
 		</Filter>

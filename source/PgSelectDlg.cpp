@@ -6,7 +6,8 @@
 #include "MainFrm.h"
 #include "PhotoPubDoc.h"
 #include "PgSelectDlg.h"
-
+#include <set>
+using namespace std;
 
 // CPgSelectDlg dialog
 
@@ -48,9 +49,13 @@ BOOL CPgSelectDlg::OnInitDialog()
 	//CPhotoPubDoc *pDoc=(CPhotoPubDoc *)((CMainFrame *)GetParent())->GetActiveDocument();
 	//const vector<CPage> &pages=pDoc->m_PreDefinedPages;
 	size_t size=m_PageSettings.size();
-
+	set<CString> pagetypes;
 	for (size_t i=0;i<size;++i){
-		m_PageSizeList.AddString(m_PageSettings[i].m_SizeDiscription);
+		pagetypes.insert(m_PageSettings[i].m_SizeDiscription);
+	}
+	set<CString>::iterator it;
+	for (it=pagetypes.begin();it!=pagetypes.end();++it){
+		m_PageSizeList.AddString(*it);
 	}
 	m_PageSizeList.SetCurSel(0);
 

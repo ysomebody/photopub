@@ -7,6 +7,9 @@
 #include "PhotoPubDoc.h"
 #include "highgui.h"
 #include "PgSelectDlg.h"
+#include "TreeDialog.h"
+#include "CustomPageDlg.h"
+#include "SizeDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -21,6 +24,8 @@ BEGIN_MESSAGE_MAP(CPhotoPubDoc, CDocument)
 	ON_BN_CLICKED(ID_IMAGE_OPEN, &CPhotoPubDoc::OnOpenImage)
 	ON_BN_CLICKED(ID_SELPAGE, &CPhotoPubDoc::OnBnClickedSelpage)
 	ON_BN_CLICKED(ID_PREVIEW, &CPhotoPubDoc::OnBnClickedSavePreview)
+	ON_BN_CLICKED(ID_BATCHPUB, &CPhotoPubDoc::OnBnClickedBatchPub)
+	ON_BN_CLICKED(ID_CSTPAGE, &CPhotoPubDoc::OnBnClickedCstpage)
 END_MESSAGE_MAP()
 
 
@@ -131,18 +136,13 @@ void CPhotoPubDoc::OnBnClickedSelpage()
 {
 	// TODO: Add your control notification handler code here
 
-
-/*	if (!m_pOpenedImage) {
-		AfxMessageBox("请先打开一幅照片！");
-		return;
-	}
-*/
-	CPgSelectDlg dlg(AfxGetApp()->GetMainWnd(),m_PreDefinedPages,m_pOpenedImage);
+	CPgSelectDlg dlg(AfxGetApp()->GetMainWnd(),m_PreDefinedPages,m_pOpenedImage!=NULL);
 	if (IDOK==dlg.DoModal()) {
 		m_pPageSetting=dlg.m_pCurrentPageSetting;
 		if (dlg.m_bGenPreview) {
 			cvReleaseImage(&m_pPublishingImage);
-			m_pPageSetting->Publish(m_pOpenedImage,m_pPublishingImage);
+			m_pPageSetting->PublishSingle(m_pOpenedImage,m_pPublishingImage);
+			//m_pPageSetting->Publish(m_pOpenedImage,m_pPublishingImage);
 			m_Show=PRV;
 		}else{
 			m_Show=ORG;
@@ -193,4 +193,71 @@ void CPhotoPubDoc::OnBnClickedSavePreview()
 										// selected filename
 		cvSaveImage(path,m_pPublishingImage);
 	}	
+}
+
+
+void CPhotoPubDoc::OnBnClickedBatchPub()
+{
+	// TODO: Add your control notification handler code here
+	if (!m_pPageSetting) {
+		AfxMessageBox("请先选择版式！");
+		return;
+	}
+
+	/*CTreeDialog dlg;
+	if (IDCANCEL==dlg.DoModal())
+		return;
+	CString SrcPath=dlg.m_strPath;
+	*/
+
+	char szDir[MAX_PATH];
+	BROWSEINFO bi;
+	ITEMIDLIST *pidl;
+
+	bi.hwndOwner = NULL;
+	bi.pidlRoot = NULL;
+	bi.pszDisplayName = szDir;
+	bi.lpszTitle = "请选择照片所在的文件夹:";
+	bi.ulFlags = BIF_RETURNONLYFSDIRS;
+	bi.lpfn = NULL;
+	bi.lParam = 0;
+	bi.iImage = 0;
+
+	pidl = SHBrowseForFolder(&bi);
+	if(pidl == NULL)
+		return ;
+	if(!SHGetPathFromIDList(pidl, szDir))
+		return ;
+	CString SrcPath(szDir);
+	CString TarPath(SrcPath+"\\test");
+
+
+	CreateDirectory(TarPath, NULL);
+
+
+	int nFiles=m_pPageSetting->PublishDir(SrcPath,TarPath);
+	if (!nFiles) {
+		AfxMessageBox("指定目录中没有JPG格式的图像文件！");
+	}
+
+
+	
+
+}
+
+void CPhotoPubDoc::OnBnClickedCstpage()
+{
+	// TODO: Add your control notification handler code here
+	CSizeDlg sizeDlg;
+	if (IDCANCEL==sizeDlg.DoModal())
+		return;
+	CString size=sizeDlg.m_Size.Left(1);
+
+	CCustomPageDlg dlg(NULL,size);
+	if (IDCANCEL==dlg.DoModal())
+		return;
+
+	CPage page(dlg.m_Size,dlg.m_photos);
+	m_PreDefinedPages.push_back(page);
+
 }

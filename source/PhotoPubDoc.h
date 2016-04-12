@@ -56,6 +56,10 @@ protected:
 	bool ReadPreDefPages(void);
 public:
 	afx_msg void OnBnClickedSavePreview();
+public:
+	afx_msg void OnBnClickedBatchPub();
+public:
+	afx_msg void OnBnClickedCstpage();
 };
 
 
