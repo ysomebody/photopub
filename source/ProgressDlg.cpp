@@ -92,7 +92,6 @@ UINT PublishDirThreadProc(LPVOID pParam)
 	g_progress=0;
 	g_sigend=false;
 
-
 	CProgressDlg* pDlg=(CProgressDlg*)pParam;
 
 	CPage *pPageSetting=pDlg->page;
@@ -112,7 +111,7 @@ UINT A4PreviewThreadProc(LPVOID pParam)
 
 	CProgressDlg* pDlg=(CProgressDlg*)pParam;
 
-	CPage::A4PreView(pDlg->srcPath,pDlg->tarPath);
+	CPage::A4PreView(pDlg->srcPath,pDlg->tarPath,pDlg->photosize);
 
 	if (!g_sigend) 
 		pDlg->PostMessage(UM_FINISHED);

@@ -25,6 +25,7 @@ public:
 	CString tarPath;
 	CPage *page;
 	CString title;
+	CString photosize;
 
 // Dialog Data
 	enum { IDD = IDD_PROGRESS };

@@ -44,9 +44,9 @@ public:
 	int PublishDir(const CString &srcpath,const CString &tarpath);
 
 	static void Size2WH(const CString &size, double &width, double &height);
-	static void A4PreView(const CString &srcpath,const CString &tarpath);
+	static void A4PreView(const CString &srcpath,const CString &tarpath, const CString &size);
 
 private:
 	void Publish(IplImage * pImg, IplImage * pPub, const CString& text);
-	static void Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &text);
+	static void Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &size,const CString &text);
 };

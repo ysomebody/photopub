@@ -32,6 +32,7 @@
 #define IDC_PROGRESS1                   1023
 #define IDC_BUTTON3                     1025
 #define IDC_THUMB                       1025
+#define IDC_DSC                         1026
 #define ID_IMAGE_OPEN                   32771
 #define ID_SELPAGE                      32772
 #define ID_PREVIEW                      32773
@@ -44,7 +45,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        137
 #define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1026
+#define _APS_NEXT_CONTROL_VALUE         1027
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

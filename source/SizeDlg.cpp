@@ -10,9 +10,10 @@
 
 IMPLEMENT_DYNAMIC(CSizeDlg, CDialog)
 
-CSizeDlg::CSizeDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CSizeDlg::IDD, pParent)
-	, m_Size(_T(""))
+CSizeDlg::CSizeDlg(CWnd* pParent ,const CString &title, const CStringArray &sizelist)
+	: CDialog(CSizeDlg::IDD, pParent),
+	m_title(title),
+	m_sizelist(sizelist)
 {
 }
 
@@ -25,6 +26,7 @@ void CSizeDlg::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_COMBO3, m_SizeBox);
 	DDX_CBString(pDX, IDC_COMBO3, m_Size);
+	DDX_Control(pDX, IDC_DSC, m_discSTAT);
 }
 
 
@@ -37,10 +39,13 @@ END_MESSAGE_MAP()
 BOOL CSizeDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-	m_SizeBox.AddString("5¥Á");
-	m_SizeBox.AddString("6¥Á");
-	m_SizeBox.AddString("7¥Á");
+	INT_PTR size=m_sizelist.GetCount();
+	for (INT_PTR i=0;i<size;++i) {
+		m_SizeBox.AddString(m_sizelist.GetAt(i));
+	}
 	m_SizeBox.SetCurSel(0);
+	this->SetWindowText(CString("«Î—°‘Ò")+m_title+"≥ﬂ¥Á");
+	m_discSTAT.SetWindowText(m_title+"≥ﬂ¥Á");
 
 	// TODO:  Add extra initialization here
 

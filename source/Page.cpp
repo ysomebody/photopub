@@ -345,8 +345,9 @@ void CPage::Publish(IplImage *pImg, IplImage *pPub, const CString &text)
 			//resize
 			IplImage *tmp=cvCreateImage(cvSize(phtwidth,phtheight),IPL_DEPTH_8U,3);
 			cvResize(&subImg,tmp);
-			//transpose
+			//transpose + flip = rot90
 			cvTranspose(tmp,pBuf);
+			cvFlip(pBuf);
 		}else{
 			int phtwidth=pBuf->width;
 			int phtheight=pBuf->height;
@@ -492,11 +493,31 @@ bool TextoutToImage(const CString &text,IplImage* pImg)
 }
 
 
-void CPage::A4PreView(const CString &srcpath,const CString &tarpath)
+void CPage::A4PreView(const CString &srcpath,const CString &tarpath, const CString &size)
 {
 	//A4 210mm°¡297mm
 	int pagewidth=Cm2Dot(21.0);
 	int pageheight=Cm2Dot(29.7);
+
+	int nCol;
+	int nRow;
+	int LeftMargin,RightMargin;
+	int TopMargin,BottomMargin;
+	int singleWidth,singleHeight;
+
+	if (size=="1"){
+		nCol=5;
+		nRow=6;
+		LeftMargin=RightMargin=375;
+		TopMargin=BottomMargin=300;
+	}else if (size=="2"){
+		nCol=5;
+		nRow=5;
+		LeftMargin=RightMargin=100;
+		TopMargin=BottomMargin=50;
+	}
+	singleWidth=(pagewidth-LeftMargin-RightMargin)/nCol;
+	singleHeight=(pageheight-TopMargin-BottomMargin)/nRow;
 
 	set<CString> Filenames;
 	const int nFiles=GetAllFolderFile(srcpath, "*.jpg", Filenames);
@@ -506,19 +527,22 @@ void CPage::A4PreView(const CString &srcpath,const CString &tarpath)
 		return;
 	}else{
 
-		const int PreservedSize=6*1024*1024*3;
+		const int PreservedSize=6*1024*1024*3; //for a 6M photo
 		set<CString>::iterator it;
 
 
 		void *PreservedSpace=new char[PreservedSize];
 		IplImage *pPub=cvCreateImage(cvSize(pagewidth,pageheight),IPL_DEPTH_8U,3);
+
+		IplImage imghead;
+		imghead.imageData=(char *)PreservedSpace;
+
 		
 		int photocnt=0;
 		int pagecnt=0;
 
 		int nProcessed=0;
 		for (it=Filenames.begin();!g_sigend && it!=Filenames.end();++it) {
-//		for (it=Filenames.begin();it!=Filenames.end();++it) {
 
 			//set a white page
 			if (photocnt==0) {
@@ -527,9 +551,6 @@ void CPage::A4PreView(const CString &srcpath,const CString &tarpath)
 			}
 
 			//read the photos
-			IplImage imghead;
-			imghead.imageData=(char *)PreservedSpace;
-
 			int res=LoadImageToBuf(srcpath+"\\"+*it,&imghead,PreservedSize);
 			if( res!=LOAD_SUC)
 			{
@@ -537,14 +558,14 @@ void CPage::A4PreView(const CString &srcpath,const CString &tarpath)
 				continue;
 			}
 
-			int x=(photocnt%5)*357+375;
-			int y=(photocnt/5)*485+300;
+			int x=(photocnt%nCol)*singleWidth+LeftMargin;
+			int y=(photocnt/nCol)*singleHeight+TopMargin;
 			
 			//here: preview
-			Make1Photo(&imghead,pPub,x,y,it->Left(it->Find('.')));
+			Make1Photo(&imghead,pPub,x,y,size,it->Left(it->Find('.')));
 	
 			g_progress=(++nProcessed)*100/nFiles;
-			if (photocnt==29) {
+			if (photocnt==nCol*nRow-1) {
 				CString flnm;
 				flnm.Format("%d.jpg",pagecnt);
 				SaveFImage(tarpath+"\\"+"‘§¿¿"+flnm,pPub);
@@ -568,10 +589,10 @@ void CPage::A4PreView(const CString &srcpath,const CString &tarpath)
 
 }
 
-void CPage::Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &text)
+void CPage::Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &size,const CString &text)
 {
 	double w,h;
-	CPhoto::Size2WH(CString("1'"),w,h);
+	CPhoto::Size2WH(size+"'",w,h);
 	int phtwidth=Cm2Dot(w);
 	int phtheight=Cm2Dot(h);
 

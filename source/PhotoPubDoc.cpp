@@ -42,7 +42,10 @@ m_pPageSetting(NULL),
 m_Show(ORG)
 {
 	// TODO: 在此添加一次性构造代码
-	ReadPreDefPages();
+	if (!ReadPreDefPages()) {
+		AfxMessageBox("丢失格式定义文件！程序中止！",MB_OK|MB_ICONSTOP);
+		exit(0);
+	}
 
 }
 
@@ -306,7 +309,11 @@ void CPhotoPubDoc::OnBnClickedBatchPub()
 void CPhotoPubDoc::OnBnClickedCstpage()
 {
 	// TODO: Add your control notification handler code here
-	CSizeDlg sizeDlg;
+	CStringArray sizelist;
+	sizelist.Add("5寸");
+	sizelist.Add("6寸");
+	sizelist.Add("7寸");
+	CSizeDlg sizeDlg(NULL,"页面",sizelist);
 	if (IDCANCEL==sizeDlg.DoModal())
 		return;
 	CString size=sizeDlg.m_Size.Left(1);
@@ -324,6 +331,14 @@ void CPhotoPubDoc::OnBnClickedCstpage()
 
 void CPhotoPubDoc::OnBnClickedThumb()
 {
+	CStringArray sizelist;
+	sizelist.Add("1寸");
+	sizelist.Add("2寸");
+	CSizeDlg sizeDlg(NULL,"预览照片",sizelist);
+	if (IDCANCEL==sizeDlg.DoModal())
+		return;
+	CString size=sizeDlg.m_Size.Left(1);
+
 	// TODO: Add your control notification handler code here
 	char szDir[MAX_PATH];
 	BROWSEINFO bi;
@@ -361,6 +376,7 @@ void CPhotoPubDoc::OnBnClickedThumb()
 	ProgDlg.srcPath=SrcPath;
 	ProgDlg.tarPath=TarPath;
 	ProgDlg.title="生成缩略图";
+	ProgDlg.photosize=size;
 	ProgDlg.pThread =
 		AfxBeginThread(A4PreviewThreadProc, &ProgDlg,
 			           THREAD_PRIORITY_NORMAL);
