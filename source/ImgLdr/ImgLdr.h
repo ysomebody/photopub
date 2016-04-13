@@ -1,3 +1,5 @@
+#include <cv.h>
+
 #ifdef IMAGELDR_EXPORTS
 #define IMAGELDR_API __declspec(dllexport)
 #else

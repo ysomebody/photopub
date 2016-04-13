@@ -230,10 +230,10 @@ bool CPhotoPubDoc::WriteDefPages(void)
 		return false;
 	size_t size=m_PreDefinedPages.size();
 	for (size_t i=0;i<size;++i){
-		fprintf_s(fptmp,"[%d]\n",i,MAX_BUF_SIZE);
+		fprintf_s(fptmp,"[%d]\n",i);
 		m_PreDefinedPages[i]->SavePage(fptmp);
 	}
-	fprintf_s(fptmp,"%s","[End]",MAX_BUF_SIZE);
+	fprintf_s(fptmp,"%s","[End]");
 
 	fclose(fptmp);
 	fclose(fpfmt);

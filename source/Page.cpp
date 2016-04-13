@@ -120,9 +120,10 @@ bool CPage::LoadPage(FILE *&fp)
 	}else{
 		m_pTitle=NULL;
 	}
-
+   int addTitleEach = 0;
 	fscanf_s(fp,"%13s",buf,MAX_BUF_SIZE);	//AddTitleEach=
-	fscanf_s(fp,"%d",&m_bAddTitleEach);
+	fscanf_s(fp,"%d",&addTitleEach);
+   m_bAddTitleEach = (bool)m_bAddTitleEach;
 
 	//统计尺寸，生成版面描述
 	int num;
@@ -156,7 +157,7 @@ bool CPage::SavePage(FILE *&fp)
 	if (!fp) return false;
 	
 	//save page
-	fprintf_s(fp,"PageSize=%s\n",m_Size);	//PageSize=
+	fprintf_s(fp,"PageSize=%s\n",m_Size.GetString());	//PageSize=
 
 	//save photos on the page
 	size_t typenum=m_TypeNum.size();
@@ -164,7 +165,7 @@ bool CPage::SavePage(FILE *&fp)
 
 	for(map<CString,int>::iterator it=m_TypeNum.begin();it!=m_TypeNum.end();++it)
 	{
-		fprintf_s(fp,"PhotoSize=%s\n",it->first);	//PhotoSize=
+		fprintf_s(fp,"PhotoSize=%s\n",it->first.GetString());	//PhotoSize=
 		fprintf_s(fp,"PhotoNum=%d\n",it->second);	//PhotoNum=
 
 		//save photos
@@ -264,7 +265,8 @@ void CPage::PreView(CDC *pDC,CRect *pRect,int FACTOR)
 						"宋体");                 // lpszFacename
 					CFont *pof=pDC->SelectObject(&font);
 					pDC->TextOut(r,b-1,"显示文件名");
-					pDC->SelectObject(pof);					}
+					pDC->SelectObject(pof);
+            }
 
 			}
 		}else if(CText *pTxt=dynamic_cast<CText *>(pElement)){
@@ -371,56 +373,52 @@ int CPage::PublishDir(const CString &srcpath,const CString &tarpath)
 
 void CPage::Publish(IplImage *pImg, IplImage *pPub, const CString &text)
 {
-
 	//Preprocess the photos into required size and copy to buffer
 	for (map<CString,int>::iterator it=m_TypeNum.begin();it!=m_TypeNum.end();++it) {
 		bool isT=(it->first.Right(1)!="'");
 		IplImage *pBuf=g_ImageBuf.Buffer(it->first);
-		CvMat subImg;
-		if (isT) {
-			int phtheight=pBuf->width;
-			int phtwidth=pBuf->height;
-			int imgwidth=pImg->width;
-			int imgheight=pImg->height;
-			double phtwtoh=((double)phtwidth)/phtheight;
-			double imgwtoh=((double)imgwidth)/imgheight;
-			if (imgwtoh>phtwtoh) {
-				//crop on width
-				int width=int(imgheight*phtwtoh);
-				cvGetSubRect(pImg,&subImg,cvRect(abs(imgwidth-width)/2,0,width,imgheight));
-			}else{
-				//crop on height
-				int height=int(imgwidth/phtwtoh);
-				//cvGetSubRect(pImg,&subImg,cvRect(0,abs(imgheight-height)/2,imgwidth,height));
-				cvGetSubRect(pImg,&subImg,cvRect(0,0,imgwidth,height));
-			}
-			//resize
-			IplImage *tmp=cvCreateImage(cvSize(phtwidth,phtheight),IPL_DEPTH_8U,3);
-			cvResize(&subImg,tmp);
-			//transpose + flip = rot90
-			cvTranspose(tmp,pBuf);
-			cvFlip(pBuf);
-			cvReleaseImage(&tmp);
-		}else{
-			int phtwidth=pBuf->width;
-			int phtheight=pBuf->height;
-			int imgwidth=pImg->width;
-			int imgheight=pImg->height;
-			double phtwtoh=((double)phtwidth)/phtheight;
-			double imgwtoh=((double)imgwidth)/imgheight;
-			if (imgwtoh>phtwtoh) {
-				//crop on width
-				int width=int(imgheight*phtwtoh);
-				cvGetSubRect(pImg,&subImg,cvRect(abs(imgwidth-width)/2,0,width,imgheight));
-			}else{
-				//crop on height
-				int height=int(imgwidth/phtwtoh);
-				//cvGetSubRect(pImg,&subImg,cvRect(0,abs(imgheight-height)/2,imgwidth,height));
-				cvGetSubRect(pImg,&subImg,cvRect(0,0,imgwidth,height));
-			}
-			//resize
-			cvResize(&subImg,pBuf);
-		}
+      memset(pBuf->imageData, 255, pBuf->widthStep*pBuf->height);
+      int rgnwidth = pBuf->width;
+      int rgnheight = pBuf->height;
+      if (isT)
+      {
+         swap(rgnwidth, rgnheight);
+      }
+
+      //keep img ratio
+      int imgwidth = pImg->width;
+      int imgheight = pImg->height;
+      //fit width
+      int phtwidth = rgnwidth;
+      int phtheight = phtwidth * imgheight / imgwidth;
+      if (phtheight > rgnheight)
+      {
+         //fit height
+         phtheight = rgnheight;
+         phtwidth = phtheight * imgwidth / imgheight;
+      }
+
+      CvMat subRgn;
+
+      if (isT)
+      {
+         IplImage *rgn = cvCreateImage(cvSize(rgnwidth, rgnheight), IPL_DEPTH_8U, 3);
+         memset(rgn->imageData, 255, rgn->widthStep*rgn->height);
+         cvGetSubRect(rgn, &subRgn, cvRect(0, 0, phtwidth, phtheight));
+         cvResize(pImg, &subRgn);
+
+         //transpose + flip = rot90
+         cvTranspose(rgn,pBuf);
+         cvFlip(pBuf);
+
+         cvReleaseImage(&rgn);
+      }
+      else
+      {
+         cvGetSubRect(pBuf, &subRgn, cvRect(0, 0, phtwidth, phtheight));
+         cvResize(pImg, &subRgn);
+      }
+		
 		IplImage *pBufT=g_ImageBuf.Buffer(it->first+"T");
 		if (!isT) {
 			TextoutToImage(text,pBufT);
@@ -744,34 +742,32 @@ void CPage::Make1Photo(IplImage *pImg,IplImage *pPub,int x,int y,const CString &
 {
 	double w,h;
 	CPhoto::Size2WH(size+"'",w,h);
-	int phtwidth=Cm2Dot(w);
-	int phtheight=Cm2Dot(h);
+	int rgnwidth=Cm2Dot(w);
+	int rgnheight=Cm2Dot(h);
 
-
-	//do the photo
-	CvMat PubRgn;
-	cvGetSubRect(pPub,&PubRgn,cvRect(x,y,phtwidth,phtheight));
-
-	CvMat subImg;
+   //keep img ratio
 	int imgwidth=pImg->width;
 	int imgheight=pImg->height;
-	double phtwtoh=((double)phtwidth)/phtheight;
-	double imgwtoh=((double)imgwidth)/imgheight;
-	if (imgwtoh>phtwtoh) {
-		//crop on width
-		int width=int(imgheight*phtwtoh);
-		cvGetSubRect(pImg,&subImg,cvRect(abs(imgwidth-width)/2,0,width,imgheight));
-	}else{
-		//crop on height
-		int height=int(imgwidth/phtwtoh);
-		//cvGetSubRect(pImg,&subImg,cvRect(0,abs(imgheight-height)/2,imgwidth,height));
-		cvGetSubRect(pImg,&subImg,cvRect(0,0,imgwidth,height));
-	}
+   //fit width
+   int phtwidth = rgnwidth;
+   int phtheight = phtwidth * imgheight / imgwidth;
+   if (phtheight > rgnheight)
+   {
+      //fit height
+      phtheight = rgnheight;
+      phtwidth = phtheight * imgwidth / imgheight;
+   }
+   int xmargin = (rgnwidth - phtwidth) / 2; //center
+   int ymargin = (rgnheight - phtheight); //bottom
+	//do the photo
+	CvMat PubRgn;
+	cvGetSubRect(pPub,&PubRgn,cvRect(x + xmargin,y + ymargin, phtwidth, phtheight));
+
 	//resize
-	cvResize(&subImg,&PubRgn);
+	cvResize(pImg,&PubRgn);
 
 	//do the Text
-	cvGetSubRect(pPub,&PubRgn,cvRect(x,y+phtheight+1,phtwidth,textheight));
+	cvGetSubRect(pPub,&PubRgn,cvRect(x,y+rgnheight+1,rgnwidth,textheight));
 	IplImage imghdr;
 	imghdr.width=PubRgn.width;
 	imghdr.height=PubRgn.height;
